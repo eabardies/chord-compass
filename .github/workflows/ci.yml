@@ -46,6 +46,9 @@ jobs:
           # Project sites live under /<repository name>/.
           BASE_PATH: /${{ github.event.repository.name }}/
       - uses: actions/configure-pages@v5
+        with:
+          # Enables Pages for the repository on first run; no manual settings step needed.
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
