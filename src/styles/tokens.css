@@ -1,0 +1,76 @@
+/*
+ * Design tokens. Light theme uses warm neutrals with a restrained green accent; the dark
+ * theme follows the system preference. Components only ever reference these variables.
+ */
+:root {
+  color-scheme: light dark;
+
+  --color-bg: #f4f1ea;
+  --color-surface: #fffdf8;
+  --color-surface-raised: #efebe2;
+  --color-text: #262320;
+  --color-text-muted: #6d665d;
+  --color-border: #ddd6c9;
+  --color-border-strong: #c7bfaf;
+
+  --color-accent: #2f7d4f;
+  --color-accent-strong: #22613c;
+  --color-accent-soft: #dcefe1;
+  --color-accent-text: #1b4a2f;
+  --color-on-accent: #ffffff;
+
+  --color-diagram-line: #6d665d;
+  --color-diagram-nut: #262320;
+  --color-dot: #2f7d4f;
+  --color-dot-text: #ffffff;
+  --color-barre: rgb(47 125 79 / 0.35);
+
+  --font-body: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-sm: 0 1px 2px rgb(38 35 32 / 0.06);
+  --focus-ring: 0 0 0 3px var(--color-bg), 0 0 0 5px var(--color-accent);
+  --content-max-width: 72rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #121413;
+    --color-surface: #1a1d1b;
+    --color-surface-raised: #232724;
+    --color-text: #e9e6df;
+    --color-text-muted: #a39e95;
+    --color-border: #2c312e;
+    --color-border-strong: #3c423e;
+
+    --color-accent: #b7e2c0;
+    --color-accent-strong: #cdebd3;
+    --color-accent-soft: #22312a;
+    --color-accent-text: #d9f1df;
+    --color-on-accent: #10231a;
+
+    --color-diagram-line: #8f8a82;
+    --color-diagram-nut: #e9e6df;
+    --color-dot: #b7e2c0;
+    --color-dot-text: #10231a;
+    --color-barre: rgb(183 226 192 / 0.3);
+
+    --shadow-sm: none;
+  }
+}

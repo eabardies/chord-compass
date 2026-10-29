@@ -1,0 +1,96 @@
+.scale-reference {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.scale-reference__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.scale-reference__title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.scale-reference__degrees {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+}
+
+@media (min-width: 48rem) {
+  .scale-reference__degrees {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+.scale-reference__degree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.scale-reference__degree--chord-tone {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+/* Altered degrees keep the scale note visible and are set apart by a dashed border. */
+.scale-reference__degree--altered {
+  background: var(--color-surface);
+  border: 2px dashed var(--color-accent);
+  color: var(--color-text);
+}
+
+.scale-reference__number {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.scale-reference__note {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.scale-reference__degree--altered .scale-reference__note {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  color: var(--color-text-muted);
+}
+
+.scale-reference__status {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.scale-reference__degree--altered .scale-reference__status {
+  color: var(--color-accent-text);
+  font-size: var(--font-size-sm);
+}
+
+.scale-reference__summary {
+  font-weight: 600;
+}

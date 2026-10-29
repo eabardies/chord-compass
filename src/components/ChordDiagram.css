@@ -1,0 +1,49 @@
+.chord-diagram {
+  display: block;
+  width: 100%;
+  max-width: 14rem;
+  height: auto;
+  margin: 0 auto;
+  font-family: var(--font-body);
+}
+
+.chord-diagram__line {
+  stroke: var(--color-diagram-line);
+  stroke-width: 1;
+}
+
+.chord-diagram__nut {
+  fill: var(--color-diagram-nut);
+}
+
+.chord-diagram__fret-number,
+.chord-diagram__string-name {
+  font-size: 11px;
+  fill: var(--color-text-muted);
+}
+
+.chord-diagram__muted {
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--color-text-muted);
+}
+
+.chord-diagram__open {
+  fill: none;
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+}
+
+.chord-diagram__dot {
+  fill: var(--color-dot);
+}
+
+.chord-diagram__finger {
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--color-dot-text);
+}
+
+.chord-diagram__barre {
+  fill: var(--color-barre);
+}

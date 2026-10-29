@@ -1,0 +1,50 @@
+.progression-practice__heading {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.progression-practice__legend {
+  margin: var(--space-2) 0 var(--space-4);
+}
+
+.progression-practice__blues {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.progression-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+}
+
+.progression-grid__item {
+  min-width: 0;
+}
+
+.progression-grid__item .card {
+  height: 100%;
+  padding: var(--space-4);
+}
+
+.progression-grid__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.progression-grid__numeral {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.progression-grid__symbol {
+  font-size: var(--font-size-lg);
+}
