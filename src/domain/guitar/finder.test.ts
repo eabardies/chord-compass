@@ -76,24 +76,29 @@ describe('shape lookup', () => {
     expect(codes('C', 'major', 'F')).toEqual([]);
   });
 
-  it('has the common diatonic slash chords in the library, pending verification', () => {
-    const allCodes = (root: string, typeId: string, bass: string) =>
-      shapesForChord(chord(root, typeId, bass), SHAPE_LIBRARY, STANDARD_TUNING).map((shape) =>
-        shapeCode(shape.frets),
-      );
-    expect(allCodes('D', 'major', 'F♯')).toEqual(['2x0232']);
-    expect(allCodes('G', 'major', 'B')).toEqual(['x20033']);
-    expect(allCodes('G', 'major', 'D')).toEqual(['xx0433']);
-    expect(allCodes('A', 'minor', 'G')).toEqual(['302210']);
-    expect(allCodes('A', 'minor', 'C')).toEqual(['x32210']);
-    expect(allCodes('F', 'major', 'A')).toEqual(['x03211']);
-    expect(allCodes('E', 'major', 'G♯')).toEqual(['4x2100']);
-    expect(allCodes('E', 'minor', 'B')).toEqual(['x22000']);
-    expect(allCodes('A', 'major', 'C♯')).toEqual(['x42220']);
-    expect(allCodes('D', 'major', 'A')).toEqual(['x00232']);
-    expect(allCodes('D', 'major', 'C')).toEqual(['x30232']);
-    // Not yet played, so the finder does not offer them.
-    expect(codes('D', 'major', 'F♯')).toEqual([]);
+  it('finds the common diatonic slash chords', () => {
+    expect(codes('D', 'major', 'F♯')).toEqual(['2x0232']);
+    expect(codes('G', 'major', 'B')).toEqual(['x20033']);
+    expect(codes('G', 'major', 'D')).toEqual(['xx0433']);
+    expect(codes('A', 'minor', 'G')).toEqual(['302210']);
+    expect(codes('A', 'minor', 'C')).toEqual(['x32210']);
+    expect(codes('F', 'major', 'A')).toEqual(['x03211']);
+    expect(codes('E', 'major', 'G♯')).toEqual(['4x2100']);
+    expect(codes('E', 'minor', 'B')).toEqual(['x22000']);
+    expect(codes('A', 'major', 'C♯')).toEqual(['x42220']);
+    expect(codes('D', 'major', 'A')).toEqual(['x00232']);
+    expect(codes('D', 'major', 'C')).toEqual(['x30232']);
+  });
+
+  it('offers the CAGED forms as alternatives, open shape still recommended', () => {
+    expect(codes('A', 'major')).toEqual([
+      'x02220',
+      '54222x',
+      '577655',
+      'x-x-7-9-10-9',
+      'x-12-11-9-10-9',
+      'x-12-14-14-14-12',
+    ]);
   });
 
   it('transposes the CAGED forms to every root within the fretboard', () => {

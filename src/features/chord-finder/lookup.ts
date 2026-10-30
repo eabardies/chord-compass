@@ -3,6 +3,7 @@ import {
   findVerifiedShapes,
   shapesForChord,
   STANDARD_TUNING,
+  type ShapeDefinition,
   type VoicedShape,
 } from '../../domain/guitar';
 import {
@@ -29,15 +30,18 @@ export type ChordLookup =
 
 export const EXAMPLE_SYMBOLS = ['C/B', 'C/E', 'F♯m7', 'B♭maj7/D', 'Asus2'] as const;
 
-export function lookupChord(text: string): ChordLookup {
+export function lookupChord(
+  text: string,
+  library: readonly ShapeDefinition[] = shapeLibrary(),
+): ChordLookup {
   const parsed = parseChordSymbol(text, CHORD_TYPES);
   if (!parsed.ok) return { status: 'invalid', ...describeError(parsed.error) };
   const { root, typeId, bass } = parsed.value;
   const chord = buildChord(root, chordTypeById(typeId), bass);
-  const shapes = findVerifiedShapes(chord, shapeLibrary(), STANDARD_TUNING);
+  const shapes = findVerifiedShapes(chord, library, STANDARD_TUNING);
   if (shapes.length === 0) {
     const plain = chord.bass ? buildChord(root, chordTypeById(typeId)).symbol : null;
-    const unverified = shapesForChord(chord, shapeLibrary(), STANDARD_TUNING).length;
+    const unverified = shapesForChord(chord, library, STANDARD_TUNING).length;
     return {
       status: 'no-shape',
       chord,

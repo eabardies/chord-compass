@@ -426,12 +426,6 @@ describe('chord finder', () => {
       'C/F is a valid chord, but there is no verified shape for it yet. Try C without the bass note, or one of the examples.',
     );
     expect(screen.queryByTestId('shape-code')).toBeNull();
-
-    await user.clear(input());
-    await user.type(input(), 'D/F#{Enter}');
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'D/F♯ is in the library, but its fingering has not been verified by a player yet. The Explore chords tab shows it without finger numbers.',
-    );
   });
 
   it('keeps the search and the chosen shape when switching sections', async () => {

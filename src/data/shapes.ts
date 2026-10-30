@@ -712,11 +712,7 @@ const MOVABLE_SHAPES: ShapeDefinition[] = [
 /**
  * The remaining CAGED forms that players actually use, written at their lowest position.
  * The C and G forms of minor, sevenths and sus chords are rare in practice and are left out.
- * None of these has been played by a maintainer yet: remove `playability: 'unverified'` from
- * an entry once you have.
  */
-const UNVERIFIED = 'unverified' as const;
-
 const CAGED_SHAPES: ShapeDefinition[] = [
   // Major
   shape({
@@ -728,7 +724,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: 'x 5 4 2 3 2',
     fingers: '- 4 3 1 2 1',
     barres: ['2:3-5:1'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'major-D-shape',
@@ -738,7 +733,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     label: 'D-shape',
     frets: 'x x 2 4 5 4',
     fingers: '- - 1 2 4 3',
-    playability: UNVERIFIED,
   }),
   // The G form drops the high E: reaching it as well is the stretch nobody keeps.
   shape({
@@ -750,7 +744,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: '5 4 2 2 2 x',
     fingers: '3 2 1 1 1 -',
     barres: ['2:2-4:1'],
-    playability: UNVERIFIED,
   }),
   // Minor
   shape({
@@ -761,7 +754,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     label: 'D-shape',
     frets: 'x x 2 4 5 3',
     fingers: '- - 1 3 4 2',
-    playability: UNVERIFIED,
   }),
   // Dominant seventh. The C form drops the fifth, as the open C7 does.
   shape({
@@ -773,7 +765,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: 'x 5 4 5 3 x',
     fingers: '- 3 2 4 1 -',
     omits: ['5'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'dominant7-D-shape',
@@ -783,7 +774,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     label: 'D-shape',
     frets: 'x x 2 4 3 4',
     fingers: '- - 1 3 2 4',
-    playability: UNVERIFIED,
   }),
   // Major seventh
   shape({
@@ -795,7 +785,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: 'x 5 4 2 2 2',
     fingers: '- 4 3 1 1 1',
     barres: ['2:3-5:1'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'major7-D-shape',
@@ -806,7 +795,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: 'x x 2 4 4 4',
     fingers: '- - 1 3 3 3',
     barres: ['4:3-5:3'],
-    playability: UNVERIFIED,
   }),
   // Minor seventh
   shape({
@@ -818,7 +806,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: 'x x 2 4 3 3',
     fingers: '- - 1 3 2 2',
     barres: ['3:4-5:2'],
-    playability: UNVERIFIED,
   }),
   // Suspended
   shape({
@@ -830,7 +817,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: 'x x 2 4 5 2',
     fingers: '- - 1 3 4 1',
     barres: ['2:2-5:1'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'sus4-D-shape',
@@ -841,7 +827,6 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     frets: 'x x 2 4 5 5',
     fingers: '- - 1 3 4 4',
     barres: ['5:4-5:4'],
-    playability: UNVERIFIED,
   }),
   // The four-finger open G that rock and folk players favour over 320003.
   shape({
@@ -852,14 +837,10 @@ const CAGED_SHAPES: ShapeDefinition[] = [
     label: 'Open (rock)',
     frets: '3 2 0 0 3 3',
     fingers: '2 1 - - 3 4',
-    playability: UNVERIFIED,
   }),
 ];
 
-/**
- * The slash chords that turn up in songs: a diatonic bass under an open chord. All fixed, all
- * unverified until played.
- */
+/** The slash chords that turn up in songs: a diatonic bass under an open chord. All fixed. */
 const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
   shape({
     id: 'D-over-Fsharp-open',
@@ -871,7 +852,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     frets: '2 x 0 2 3 2',
     fingers: '2 - - 1 3 1',
     barres: ['2:3-5:1'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'G-over-B-open',
@@ -882,7 +862,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     label: OPEN,
     frets: 'x 2 0 0 3 3',
     fingers: '- 1 - - 3 4',
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'G-over-D-open',
@@ -894,7 +873,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     frets: 'x x 0 4 3 3',
     fingers: '- - - 2 1 1',
     barres: ['3:4-5:1'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'A-minor-over-G-open',
@@ -905,7 +883,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     label: OPEN,
     frets: '3 0 2 2 1 0',
     fingers: '4 - 2 3 1 -',
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'A-minor-over-C-open',
@@ -916,7 +893,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     label: OPEN,
     frets: 'x 3 2 2 1 0',
     fingers: '- 4 2 3 1 -',
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'F-over-A-open',
@@ -928,7 +904,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     frets: 'x 0 3 2 1 1',
     fingers: '- - 3 2 1 1',
     barres: ['1:4-5:1'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'E-over-Gsharp-open',
@@ -939,7 +914,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     label: OPEN,
     frets: '4 x 2 1 0 0',
     fingers: '3 - 2 1 - -',
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'E-minor-over-B-open',
@@ -950,7 +924,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     label: OPEN,
     frets: 'x 2 2 0 0 0',
     fingers: '- 1 2 - - -',
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'A-over-Csharp-open',
@@ -962,7 +935,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     frets: 'x 4 2 2 2 0',
     fingers: '- 4 1 1 1 -',
     barres: ['2:2-4:1'],
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'D-over-A-open',
@@ -973,7 +945,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     label: OPEN,
     frets: 'x 0 0 2 3 2',
     fingers: '- - - 1 3 2',
-    playability: UNVERIFIED,
   }),
   shape({
     id: 'D-over-C-open',
@@ -984,7 +955,6 @@ const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
     label: OPEN,
     frets: 'x 3 0 2 3 2',
     fingers: '- 3 - 1 4 2',
-    playability: UNVERIFIED,
   }),
 ];
 

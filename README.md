@@ -147,13 +147,13 @@ plain shapes never match a slash chord, so `C/B` is never answered with an open 
 validator additionally requires the bass to be the lowest sounding string.
 
 **Known coverage limitations**: every plain chord type parses and has at least one verified
-shape on every root. Fingerings marked unverified are hidden from the finder, which then says
-so ("in the library, but not verified yet") rather than "no shape"; the explorer shows them
-without finger numbers. Currently unverified: the CAGED C, D and G forms (see below), the
-four-finger open G, some open sus2, sus4 and augmented shapes, and all of the common diatonic
-slash chords. Verified slash shapes are a major triad over its major seventh (C/B, movable), a
-major seventh over its third (B♭maj7/D, movable), and the fixed C/E and C/G. Any other slash
-chord parses but reports "no verified shape".
+shape on every root, usually several (open, CAGED forms and barres). Fingerings marked
+unverified (some open sus2, sus4 and augmented shapes) are hidden from the finder, which then
+says so ("in the library, but not verified yet") rather than "no shape"; the explorer shows
+them without finger numbers. Slash chords covered: a major triad over its major seventh (C/B,
+movable, any root), a major seventh over its third (B♭maj7/D, movable, any root), and the
+fixed C/E, C/G, D/F♯, G/B, G/D, Am/G, Am/C, F/A, E/G♯, Em/B, A/C♯, D/A and D/C. Any other
+slash chord parses but reports "no verified shape".
 
 ## Learn triads
 
@@ -192,7 +192,8 @@ Every chord type has at least one shape for every root (tested). Coverage:
 - Open shapes for the common major, minor, seventh, major seventh, minor seventh, sus2, sus4 and
   augmented chords. Open C7 deliberately omits the fifth and says so.
 - E-shape and A-shape barre chords for major, minor, dominant seventh, major seventh, minor
-  seventh and sus4; an A-shape barre for sus2.
+  seventh and sus4; an A-shape barre for sus2; CAGED C, D and G forms (see below).
+- Common slash chords, fixed and movable (see "Chord finder").
 - Four-string movable shapes for diminished and augmented triads (root on the A or D string).
 
 Known gaps:
@@ -200,11 +201,9 @@ Known gaps:
 - Fingerings marked `playability: 'unverified'` in `src/data/shapes.ts` (some sus2/sus4 open
   shapes, open E and A augmented, and the D-string augmented shape) have correct notes but have
   not been checked by a player; the UI hides their finger numbers.
-- The CAGED C, D and G forms (major C/D/G, minor D, dominant seventh C/D, major seventh C/D,
-  minor seventh D, sus2 D, sus4 D) and the common slash chords (D/F♯, G/B, G/D, Am/G, Am/C,
-  F/A, E/G♯, Em/B, A/C♯, D/A, D/C) are in the library but marked `playability: 'unverified'`
-  until a maintainer has played them. Remove the flag on an entry in `src/data/shapes.ts`
-  once you have; the validator has already checked the notes.
+- CAGED coverage is the forms players use: major C, D and G; minor D; dominant seventh C
+  and D; major seventh C and D; minor seventh D; sus2 and sus4 D. The C and G forms of minor,
+  sevenths and sus chords are not included.
 - No audio, alternate tunings, capo support, or accounts in this version.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add chord types, shapes and progressions.
