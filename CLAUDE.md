@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - A chord type (major, m7) is a formula; a shape/voicing is one way to play a chord; a progression belongs to a key. Am is not a voicing of A. Keep these words straight in UI copy and names.
 - Frets are always low E → high E: `null` muted, `0` open, `n` fretted. Movable shapes must contain no open strings; transposition never shifts `0` or `null`.
 - Triad voicings (`domain/guitar/triadVoicing.ts`) are generated, not curated: one tone per string, most compact frets, open strings counting as fret 0 for the span. A `StringSet` is low-to-high indexes internally; the UI prints guitar numbering ("Strings 1–2–3") plus the low-to-high form ("3–2–1 · G–B–e").
+- Slash chords: `Chord.bass` is the required lowest note; shapes declare `bassPitchClass` and only match chords with the same bass relationship (plain shapes never answer a slash search). The validator requires the bass on the lowest sounding string. The chord finder shows only `playability: 'verified'` shapes and never generates fingerings from pitch classes.
 - Tabs keep inactive panels mounted so feature state survives switching; integration tests scope queries to the visible tabpanel.
 - Features store selections and derive everything during render. No effects that copy derived values into state. Shape preference is stored as a shape _definition id_ so the choice survives changing root or key.
 

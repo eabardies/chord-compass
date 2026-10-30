@@ -109,7 +109,9 @@ export function ordinal(n: number): string {
 
 /**
  * Every shape in the library that can play `chord`: fixed shapes written for this root and
- * type, then movable shapes transposed to it, ordered from the nut upwards.
+ * type, then movable shapes transposed to it, ordered from the nut upwards. A slash chord only
+ * matches shapes written for the same bass relationship, and an ordinary chord never matches
+ * a slash shape, so C/B is not answered with a plain C shape or vice versa.
  */
 export function shapesForChord(
   chord: Chord,
@@ -120,6 +122,7 @@ export function shapesForChord(
   const voiced: VoicedShape[] = [];
   for (const definition of library) {
     if (definition.chordTypeId !== chord.type.id) continue;
+    if (!bassMatches(definition, chord)) continue;
     if (definition.kind === 'fixed') {
       if (definition.rootPitchClass === rootPitchClass)
         voiced.push(voiceShape(definition, chord, tuning, 0));
@@ -129,6 +132,31 @@ export function shapesForChord(
     if (offset !== null) voiced.push(voiceShape(definition, chord, tuning, offset));
   }
   return voiced.sort(compareShapes);
+}
+
+function bassMatches(definition: ShapeDefinition, chord: Chord): boolean {
+  if (definition.bassPitchClass === undefined) return chord.bass === null;
+  if (chord.bass === null) return false;
+  if (definition.kind === 'fixed') return definition.bassPitchClass === chord.bass.pitchClass;
+  // A movable slash shape keeps the same bass-to-root distance wherever it sits.
+  return (
+    normalizePitchClass(definition.bassPitchClass - definition.rootPitchClass) ===
+    normalizePitchClass(chord.bass.pitchClass - pitchClassOf(chord.root))
+  );
+}
+
+/** Index of the lowest-pitched string that sounds, or null if every string is muted. */
+export function lowestSoundingString(frets: readonly FretValue[]): number | null {
+  const index = frets.findIndex((fret) => fret !== null);
+  return index === -1 ? null : index;
+}
+
+/** Index of the highest-pitched string that sounds, or null if every string is muted. */
+export function highestSoundingString(frets: readonly FretValue[]): number | null {
+  for (let index = frets.length - 1; index >= 0; index -= 1) {
+    if (frets[index] !== null) return index;
+  }
+  return null;
 }
 
 function compareShapes(a: VoicedShape, b: VoicedShape): number {

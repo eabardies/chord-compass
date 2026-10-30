@@ -15,7 +15,7 @@ import {
   type ShapeDefinition,
 } from './shapes';
 import { STRING_COUNT, type GuitarTuning } from './tuning';
-import { soundingPitchClass } from './voicing';
+import { lowestSoundingString, soundingPitchClass } from './voicing';
 
 /**
  * Checks a curated shape definition for internal consistency and musical correctness.
@@ -142,7 +142,11 @@ function checkChordMembership(
 ): void {
   // Any spelling of the root works for membership: only pitch classes matter here.
   const root = spellPitchClass(shape.rootPitchClass, rootLetterFor(shape.rootPitchClass));
-  const chord = buildChord(root, chordType);
+  const bass =
+    shape.bassPitchClass === undefined
+      ? null
+      : spellPitchClass(shape.bassPitchClass, rootLetterFor(shape.bassPitchClass));
+  const chord = buildChord(root, chordType, bass);
   const present = new Set<number>();
   shape.frets.forEach((fret, index) => {
     if (fret === null) return;
@@ -174,6 +178,16 @@ function checkChordMembership(
     if (!present.has(tone.pitchClass) && !declaredOmitted) {
       problem(
         `is missing degree ${intervalLabel(tone.interval)} (${chord.symbol}) and does not declare it omitted`,
+      );
+    }
+  }
+  // A slash chord is defined by its lowest note, so the bass must be the lowest sounding string.
+  const lowest = lowestSoundingString(shape.frets);
+  if (chord.bass && lowest !== null) {
+    const sounding = soundingPitchClass(tuning.strings[lowest], shape.frets[lowest] as number);
+    if (sounding !== chord.bass.pitchClass) {
+      problem(
+        `lowest sounding string ${lowest} plays pitch class ${sounding}, but ${chord.symbol} needs ${chord.bass.pitchClass} in the bass`,
       );
     }
   }

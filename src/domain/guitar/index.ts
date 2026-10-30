@@ -7,3 +7,4 @@ export * from './describe';
 export * from './stringSets';
 export * from './fretPositioning';
 export * from './triadVoicing';
+export * from './finder';

@@ -5,3 +5,4 @@ export * from './keys';
 export * from './scaleReference';
 export * from './triads';
 export * from './inversions';
+export * from './chordSymbol';

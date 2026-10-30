@@ -19,21 +19,32 @@ function define(
   name: string,
   symbolSuffix: string,
   formula: string,
+  symbolAliases: readonly string[] = [],
 ): ChordTypeDefinition {
-  return { id, name, symbolSuffix, formula: formula.split(' ').map(parseInterval) };
+  return {
+    id,
+    name,
+    symbolSuffix,
+    symbolAliases,
+    formula: formula.split(' ').map(parseInterval),
+  };
 }
 
-/** The chord types offered in the explorer, in display order. Formulas are relative to the root's major scale. */
+/**
+ * The chord types offered in the explorer, in display order. Formulas are relative to the
+ * root's major scale. Aliases are the other suffix spellings the chord finder accepts; the
+ * symbol suffix is how the app writes the chord.
+ */
 export const CHORD_TYPES: readonly ChordTypeDefinition[] = [
-  define('major', 'Major', '', '1 3 5'),
-  define('minor', 'Minor', 'm', '1 ♭3 5'),
-  define('dominant7', 'Dominant seventh', '7', '1 3 5 ♭7'),
-  define('major7', 'Major seventh', 'maj7', '1 3 5 7'),
-  define('minor7', 'Minor seventh', 'm7', '1 ♭3 5 ♭7'),
+  define('major', 'Major', '', '1 3 5', ['maj', 'major', 'M']),
+  define('minor', 'Minor', 'm', '1 ♭3 5', ['min', 'minor', '-']),
+  define('dominant7', 'Dominant seventh', '7', '1 3 5 ♭7', ['dom7']),
+  define('major7', 'Major seventh', 'maj7', '1 3 5 7', ['M7', 'major7', 'Δ7', 'Δ']),
+  define('minor7', 'Minor seventh', 'm7', '1 ♭3 5 ♭7', ['min7', 'minor7', '-7']),
   define('sus2', 'Suspended second', 'sus2', '1 2 5'),
-  define('sus4', 'Suspended fourth', 'sus4', '1 4 5'),
-  define('diminished', 'Diminished', 'dim', '1 ♭3 ♭5'),
-  define('augmented', 'Augmented', 'aug', '1 3 ♯5'),
+  define('sus4', 'Suspended fourth', 'sus4', '1 4 5', ['sus']),
+  define('diminished', 'Diminished', 'dim', '1 ♭3 ♭5', ['°', 'o']),
+  define('augmented', 'Augmented', 'aug', '1 3 ♯5', ['+']),
 ];
 
 const BY_ID = new Map(CHORD_TYPES.map((type) => [type.id, type]));

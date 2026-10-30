@@ -6,6 +6,11 @@ interface ChordDiagramProps {
   shape: VoicedShape;
   /** Hide finger numbers when the fingering has not been verified by a player. */
   showFingers?: boolean;
+  /**
+   * Short accessible name, e.g. "C/B, open position, shape x2x010". When given, the full
+   * string-by-string text becomes the description instead of the name.
+   */
+  label?: string;
 }
 
 // Geometry in SVG units; the SVG scales to its container.
@@ -22,7 +27,7 @@ const DOT_RADIUS = 8;
  * Responsive SVG chord diagram: strings run vertically, low E on the left, frets run down.
  * First-position shapes show the nut; higher shapes show their starting fret number.
  */
-export function ChordDiagram({ shape, showFingers = true }: ChordDiagramProps) {
+export function ChordDiagram({ shape, showFingers = true, label }: ChordDiagramProps) {
   const stringCount = shape.frets.length;
   const highestFret = Math.max(0, ...shape.frets.filter((fret): fret is number => fret !== null));
   // Open shapes and shapes near the nut are drawn from fret 1 so the nut stays visible.
@@ -39,9 +44,11 @@ export function ChordDiagram({ shape, showFingers = true }: ChordDiagramProps) {
       className="chord-diagram"
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label={description}
+      aria-label={label ?? description}
+      aria-description={label ? description : undefined}
     >
-      <title>{description}</title>
+      <title>{label ?? description}</title>
+      {label && <desc>{description}</desc>}
 
       {/* Nut or starting fret */}
       {startFret === 1 ? (

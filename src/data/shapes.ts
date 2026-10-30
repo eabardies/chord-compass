@@ -47,6 +47,10 @@ interface ShapeInput {
   barres?: string[];
   omits?: string[];
   playability?: Playability;
+  /** Pitch class that must sound lowest: only for slash-chord shapes such as C/B. */
+  bass?: PitchClass;
+  /** Explicit recommendation rank for the chord finder, lower first. */
+  priority?: number;
 }
 
 function parseFrets(text: string): FretValue[] {
@@ -81,6 +85,8 @@ function shape(input: ShapeInput): ShapeDefinition {
     barres: (input.barres ?? []).map(parseBarre),
     omittedDegrees: (input.omits ?? []).map(parseInterval),
     playability: input.playability ?? 'verified',
+    ...(input.bass === undefined ? {} : { bassPitchClass: input.bass }),
+    ...(input.priority === undefined ? {} : { priority: input.priority }),
   };
 }
 
@@ -462,6 +468,69 @@ const FIXED_SHAPES: ShapeDefinition[] = [
 ];
 
 /**
+ * Slash-chord shapes. The bass is the lowest sounding string (validated); shapes without a
+ * `bass` never match a slash chord, and these never match a plain chord.
+ */
+const SLASH_SHAPES: ShapeDefinition[] = [
+  // C/B: the open C with the B on the A string and the D string muted.
+  shape({
+    id: 'C-over-B-open',
+    type: 'major',
+    root: PC.C,
+    bass: PC.B,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 2 x 0 1 0',
+    fingers: '- 2 - - 1 -',
+  }),
+  // Major over its major seventh, bass on the low E: C/B at the 5th fret, movable.
+  shape({
+    id: 'major-over-7-low-E',
+    type: 'major',
+    root: PC.C,
+    bass: PC.B,
+    kind: 'movable',
+    label: 'Bass on low E',
+    frets: '7 x 5 5 5 x',
+    fingers: '3 - 1 1 1 -',
+    barres: ['5:2-4:1'],
+  }),
+  // C/E and C/G: the open C with the low E string added, open or at the 3rd fret.
+  shape({
+    id: 'C-over-E-open',
+    type: 'major',
+    root: PC.C,
+    bass: PC.E,
+    kind: 'fixed',
+    label: OPEN,
+    frets: '0 3 2 0 1 0',
+    fingers: '- 3 2 - 1 -',
+  }),
+  shape({
+    id: 'C-over-G-open',
+    type: 'major',
+    root: PC.C,
+    bass: PC.G,
+    kind: 'fixed',
+    label: OPEN,
+    frets: '3 3 2 0 1 0',
+    fingers: '3 4 2 - 1 -',
+  }),
+  // Major seventh over its third, bass on the A string: B♭maj7/D at the 3rd fret, movable.
+  shape({
+    id: 'major7-over-3-A-string',
+    type: 'major7',
+    root: PC.Bb,
+    bass: PC.D,
+    kind: 'movable',
+    label: 'Bass on A string',
+    frets: 'x 5 3 3 3 5',
+    fingers: '- 3 1 1 1 4',
+    barres: ['3:2-4:1'],
+  }),
+];
+
+/**
  * Movable shapes are written at their lowest usable position; the root they are written for
  * is `root`. `shapesForChord` transposes them, never shifting open strings (there are none).
  */
@@ -640,4 +709,289 @@ const MOVABLE_SHAPES: ShapeDefinition[] = [
   }),
 ];
 
-export const SHAPE_LIBRARY: readonly ShapeDefinition[] = [...FIXED_SHAPES, ...MOVABLE_SHAPES];
+/**
+ * The remaining CAGED forms that players actually use, written at their lowest position.
+ * The C and G forms of minor, sevenths and sus chords are rare in practice and are left out.
+ * None of these has been played by a maintainer yet: remove `playability: 'unverified'` from
+ * an entry once you have.
+ */
+const UNVERIFIED = 'unverified' as const;
+
+const CAGED_SHAPES: ShapeDefinition[] = [
+  // Major
+  shape({
+    id: 'major-C-shape',
+    type: 'major',
+    root: PC.D,
+    kind: 'movable',
+    label: 'C-shape',
+    frets: 'x 5 4 2 3 2',
+    fingers: '- 4 3 1 2 1',
+    barres: ['2:3-5:1'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'major-D-shape',
+    type: 'major',
+    root: PC.E,
+    kind: 'movable',
+    label: 'D-shape',
+    frets: 'x x 2 4 5 4',
+    fingers: '- - 1 2 4 3',
+    playability: UNVERIFIED,
+  }),
+  // The G form drops the high E: reaching it as well is the stretch nobody keeps.
+  shape({
+    id: 'major-G-shape',
+    type: 'major',
+    root: PC.A,
+    kind: 'movable',
+    label: 'G-shape',
+    frets: '5 4 2 2 2 x',
+    fingers: '3 2 1 1 1 -',
+    barres: ['2:2-4:1'],
+    playability: UNVERIFIED,
+  }),
+  // Minor
+  shape({
+    id: 'minor-D-shape',
+    type: 'minor',
+    root: PC.E,
+    kind: 'movable',
+    label: 'D-shape',
+    frets: 'x x 2 4 5 3',
+    fingers: '- - 1 3 4 2',
+    playability: UNVERIFIED,
+  }),
+  // Dominant seventh. The C form drops the fifth, as the open C7 does.
+  shape({
+    id: 'dominant7-C-shape',
+    type: 'dominant7',
+    root: PC.D,
+    kind: 'movable',
+    label: 'C-shape',
+    frets: 'x 5 4 5 3 x',
+    fingers: '- 3 2 4 1 -',
+    omits: ['5'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'dominant7-D-shape',
+    type: 'dominant7',
+    root: PC.E,
+    kind: 'movable',
+    label: 'D-shape',
+    frets: 'x x 2 4 3 4',
+    fingers: '- - 1 3 2 4',
+    playability: UNVERIFIED,
+  }),
+  // Major seventh
+  shape({
+    id: 'major7-C-shape',
+    type: 'major7',
+    root: PC.D,
+    kind: 'movable',
+    label: 'C-shape',
+    frets: 'x 5 4 2 2 2',
+    fingers: '- 4 3 1 1 1',
+    barres: ['2:3-5:1'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'major7-D-shape',
+    type: 'major7',
+    root: PC.E,
+    kind: 'movable',
+    label: 'D-shape',
+    frets: 'x x 2 4 4 4',
+    fingers: '- - 1 3 3 3',
+    barres: ['4:3-5:3'],
+    playability: UNVERIFIED,
+  }),
+  // Minor seventh
+  shape({
+    id: 'minor7-D-shape',
+    type: 'minor7',
+    root: PC.E,
+    kind: 'movable',
+    label: 'D-shape',
+    frets: 'x x 2 4 3 3',
+    fingers: '- - 1 3 2 2',
+    barres: ['3:4-5:2'],
+    playability: UNVERIFIED,
+  }),
+  // Suspended
+  shape({
+    id: 'sus2-D-shape',
+    type: 'sus2',
+    root: PC.E,
+    kind: 'movable',
+    label: 'D-shape',
+    frets: 'x x 2 4 5 2',
+    fingers: '- - 1 3 4 1',
+    barres: ['2:2-5:1'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'sus4-D-shape',
+    type: 'sus4',
+    root: PC.E,
+    kind: 'movable',
+    label: 'D-shape',
+    frets: 'x x 2 4 5 5',
+    fingers: '- - 1 3 4 4',
+    barres: ['5:4-5:4'],
+    playability: UNVERIFIED,
+  }),
+  // The four-finger open G that rock and folk players favour over 320003.
+  shape({
+    id: 'G-major-open-rock',
+    type: 'major',
+    root: PC.G,
+    kind: 'fixed',
+    label: 'Open (rock)',
+    frets: '3 2 0 0 3 3',
+    fingers: '2 1 - - 3 4',
+    playability: UNVERIFIED,
+  }),
+];
+
+/**
+ * The slash chords that turn up in songs: a diatonic bass under an open chord. All fixed, all
+ * unverified until played.
+ */
+const COMMON_SLASH_SHAPES: ShapeDefinition[] = [
+  shape({
+    id: 'D-over-Fsharp-open',
+    type: 'major',
+    root: PC.D,
+    bass: PC.Gb,
+    kind: 'fixed',
+    label: OPEN,
+    frets: '2 x 0 2 3 2',
+    fingers: '2 - - 1 3 1',
+    barres: ['2:3-5:1'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'G-over-B-open',
+    type: 'major',
+    root: PC.G,
+    bass: PC.B,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 2 0 0 3 3',
+    fingers: '- 1 - - 3 4',
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'G-over-D-open',
+    type: 'major',
+    root: PC.G,
+    bass: PC.D,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x x 0 4 3 3',
+    fingers: '- - - 2 1 1',
+    barres: ['3:4-5:1'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'A-minor-over-G-open',
+    type: 'minor',
+    root: PC.A,
+    bass: PC.G,
+    kind: 'fixed',
+    label: OPEN,
+    frets: '3 0 2 2 1 0',
+    fingers: '4 - 2 3 1 -',
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'A-minor-over-C-open',
+    type: 'minor',
+    root: PC.A,
+    bass: PC.C,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 3 2 2 1 0',
+    fingers: '- 4 2 3 1 -',
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'F-over-A-open',
+    type: 'major',
+    root: PC.F,
+    bass: PC.A,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 0 3 2 1 1',
+    fingers: '- - 3 2 1 1',
+    barres: ['1:4-5:1'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'E-over-Gsharp-open',
+    type: 'major',
+    root: PC.E,
+    bass: PC.Ab,
+    kind: 'fixed',
+    label: OPEN,
+    frets: '4 x 2 1 0 0',
+    fingers: '3 - 2 1 - -',
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'E-minor-over-B-open',
+    type: 'minor',
+    root: PC.E,
+    bass: PC.B,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 2 2 0 0 0',
+    fingers: '- 1 2 - - -',
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'A-over-Csharp-open',
+    type: 'major',
+    root: PC.A,
+    bass: PC.Db,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 4 2 2 2 0',
+    fingers: '- 4 1 1 1 -',
+    barres: ['2:2-4:1'],
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'D-over-A-open',
+    type: 'major',
+    root: PC.D,
+    bass: PC.A,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 0 0 2 3 2',
+    fingers: '- - - 1 3 2',
+    playability: UNVERIFIED,
+  }),
+  shape({
+    id: 'D-over-C-open',
+    type: 'major',
+    root: PC.D,
+    bass: PC.C,
+    kind: 'fixed',
+    label: OPEN,
+    frets: 'x 3 0 2 3 2',
+    fingers: '- 3 - 1 4 2',
+    playability: UNVERIFIED,
+  }),
+];
+
+export const SHAPE_LIBRARY: readonly ShapeDefinition[] = [
+  ...FIXED_SHAPES,
+  ...MOVABLE_SHAPES,
+  ...SLASH_SHAPES,
+  ...CAGED_SHAPES,
+  ...COMMON_SLASH_SHAPES,
+];

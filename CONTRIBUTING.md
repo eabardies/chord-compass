@@ -84,6 +84,37 @@ verified after playing it.
 Add a test to `src/domain/guitar/guitar.test.ts` when a shape has non-obvious behaviour (an
 omission, an unusual position label, a spelling such as E♯).
 
+## Adding a slash-chord shape
+
+A slash chord (`C/B`) is an ordinary chord type plus a `bass` pitch class that must sound on
+the lowest played string. Shapes with a `bass` only ever match slash chords; plain shapes never
+do, so there is no risk of an open C answering a C/B search.
+
+```ts
+// C/B: the open C with B on the A string and the D string muted
+shape({
+  id: 'C-over-B-open',
+  type: 'major',
+  root: PC.C,
+  bass: PC.B,                   // pitch class of the required lowest note
+  kind: 'fixed',
+  label: OPEN,
+  frets: 'x 2 x 0 1 0',
+  fingers: '- 2 - - 1 -',
+}),
+```
+
+A movable slash shape keeps its bass-to-root distance wherever it sits, so one definition covers
+every root: `major-over-7-low-E` (written as C/B at the 5th fret) also plays D/C♯ and G/F♯.
+
+The validator checks, in addition to the usual rules, that the lowest sounding string plays the
+bass. The sounding notes must be the chord tones plus the bass and nothing else. Add a lookup
+expectation to `src/domain/guitar/finder.test.ts` (`codes('C', 'major', 'B')`) and, if the
+shape should win over an existing one, set `priority` rather than reordering the file.
+
+Only shapes with `playability: 'verified'` appear in the chord finder; an unverified shape is
+still shown in the explorer without finger numbers.
+
 ## Adding a progression
 
 Templates live in `src/data/progressions.ts`:
@@ -130,7 +161,8 @@ there are no per-root shape tables to extend.
 ## Tests
 
 - Domain tests (`src/domain/**/**.test.ts`) cover spelling, harmonization, transposition,
-  validation and generated triad voicings. They need no DOM.
+  validation, chord-symbol parsing, finder lookup and ranking, and generated triad voicings.
+  They need no DOM.
 - `src/data/data.test.ts` validates the curated data; it is the first thing to run when a shape
   looks wrong.
 - `src/App.test.tsx` holds integration tests for the main user flows and queries by role and

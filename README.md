@@ -1,8 +1,8 @@
 # Chord Compass
 
 A guitar learning web app for exploring chord types, understanding their formulas and notes,
-seeing verified guitar shapes, learning triad inversions across the neck, and practising common
-chord progressions. Runs entirely in the
+seeing verified guitar shapes, looking up how to play a chord symbol such as C/B, learning triad
+inversions across the neck, and practising common chord progressions. Runs entirely in the
 browser: no accounts, backend, or paid APIs. Standard tuning (E A D G B E) only.
 
 ## Setup
@@ -49,13 +49,16 @@ Feature-oriented layout with independent domain modules. The dependency directio
 ```
 src/
   domain/
-    music/          notes, intervals, chord construction, scales, keys, harmonization
+    music/          notes, intervals, chord construction (incl. slash basses), chord-symbol
+                    parsing, scales, keys, harmonization
     guitar/         tuning, shape types, movable-shape transposition, voicing, validation,
-                    three-string sets, generated triad voicings
+                    three-string sets, generated triad voicings, chord-finder lookup and
+                    recommendation, play instructions
     progressions/   progression templates instantiated in a key
   data/             curated chord types, root options, verified shapes, progression templates
   features/
     chord-explorer/        "Explore chords" tab: state and orchestration
+    chord-finder/          "Chord finder" tab: search state, lookup, result and instructions
     triad-learning/        "Learn triads" tab: state, view models for the triad diagrams
     progression-practice/ "Practise progressions" tab: state and orchestration
   components/       reusable presentation: ChordDiagram, TriadDiagram, TriadFretboard, Tabs, ...
@@ -94,12 +97,63 @@ Key ideas:
 - Formulas are intervals relative to the root's major scale: `1 ♭3 5`, `1 3 5 ♭7`.
 - Frets are listed low E → high E. `null` = muted, `0` = open, `n` = fret n.
 - String numbers in descriptions follow guitar convention: 6 = low E, 1 = high E. Diagrams show
-  low E on the left.
+  low E on the left. Shape codes read the same way: `x2x010` is low E muted, A at fret 2, D
+  muted, G open, B at fret 1, high e open (`8-10-10-9-8-8` once a fret reaches 10).
+- Finger numbers: 1 = index, 2 = middle, 3 = ring, 4 = little. Open and muted strings have none.
+- Slash chords (`C/B`) name the lowest sounding note. It may be a chord tone (C/E) or an extra
+  note (C/B); either way every shape for the chord must put it on the lowest sounding string.
 - Roman numerals: uppercase major, lowercase minor, `°` diminished, `+` augmented, `7` for a
   dominant seventh override (blues).
 - "Minor" means natural minor throughout.
 - Chord roots offer both common spellings for black keys (C♯ and D♭). Keys are limited to those
   with at most seven sharps or flats.
+
+## Chord finder
+
+The "Chord finder" tab answers "how do I play X?" for a typed chord symbol, without the theory.
+It shows the recommended verified shape at once: diagram with finger numbers, shape code,
+starting string, strumming and muting instructions, a string-by-string table, and the other
+verified shapes.
+
+**Supported notation** (`domain/music/chordSymbol.ts`): a root letter A–G with an optional
+`#`/`b` or `♯`/`♭`, one of the chord types below, and an optional slash bass. Spaces are
+ignored and the root and bass letters may be lowercase. Suffix case matters only where it
+changes the meaning (`CM7` is a major seventh, `Cm7` a minor seventh); otherwise it is
+ignored (`cMAJ7`).
+
+| Chord type       | Written as        | Also accepted                 |
+| ---------------- | ----------------- | ----------------------------- |
+| Major            | `C`               | `Cmaj`, `Cmajor`, `CM`        |
+| Minor            | `Cm`              | `Cmin`, `Cminor`, `C-`        |
+| Dominant seventh | `C7`              | `Cdom7`                       |
+| Major seventh    | `Cmaj7`           | `CM7`, `Cmajor7`, `CΔ7`, `CΔ` |
+| Minor seventh    | `Cm7`             | `Cmin7`, `Cminor7`, `C-7`     |
+| Suspended second | `Csus2`           |                               |
+| Suspended fourth | `Csus4`           | `Csus`                        |
+| Diminished       | `Cdim`            | `C°`, `Co`                    |
+| Augmented        | `Caug`            | `C+`                          |
+| Slash chord      | `C/E`, `B♭maj7/D` | `Bbmaj7/D`                    |
+
+**How shapes are selected and ranked** (`domain/guitar/finder.ts`): the finder uses the same
+curated library as the explorer, restricted to fingerings marked `playability: 'verified'`.
+It never searches the fretboard for note collections. Shapes are ranked by an explicit
+`priority` if a definition sets one, then verified before unverified, open before fretted-only,
+lower position, smaller stretch between the lowest and highest fretted note, and fewer barres.
+The first shape is the recommendation; the user can pick any other.
+
+**Slash-chord shapes** carry a `bassPitchClass`. They only match chords with the same bass
+relationship (fixed shapes by exact pitch class, movable shapes by bass-to-root distance), and
+plain shapes never match a slash chord, so `C/B` is never answered with an open C. The
+validator additionally requires the bass to be the lowest sounding string.
+
+**Known coverage limitations**: every plain chord type parses and has at least one verified
+shape on every root. Fingerings marked unverified are hidden from the finder, which then says
+so ("in the library, but not verified yet") rather than "no shape"; the explorer shows them
+without finger numbers. Currently unverified: the CAGED C, D and G forms (see below), the
+four-finger open G, some open sus2, sus4 and augmented shapes, and all of the common diatonic
+slash chords. Verified slash shapes are a major triad over its major seventh (C/B, movable), a
+major seventh over its third (B♭maj7/D, movable), and the fixed C/E and C/G. Any other slash
+chord parses but reports "no verified shape".
 
 ## Learn triads
 
@@ -146,8 +200,11 @@ Known gaps:
 - Fingerings marked `playability: 'unverified'` in `src/data/shapes.ts` (some sus2/sus4 open
   shapes, open E and A augmented, and the D-string augmented shape) have correct notes but have
   not been checked by a player; the UI hides their finger numbers.
-- No C-shape, D-shape or G-shape (CAGED) movable voicings yet, so some chords only have barre
-  shapes above the 7th fret.
+- The CAGED C, D and G forms (major C/D/G, minor D, dominant seventh C/D, major seventh C/D,
+  minor seventh D, sus2 D, sus4 D) and the common slash chords (D/F♯, G/B, G/D, Am/G, Am/C,
+  F/A, E/G♯, Em/B, A/C♯, D/A, D/C) are in the library but marked `playability: 'unverified'`
+  until a maintainer has played them. Remove the flag on an entry in `src/data/shapes.ts`
+  once you have; the validator has already checked the notes.
 - No audio, alternate tunings, capo support, or accounts in this version.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add chord types, shapes and progressions.

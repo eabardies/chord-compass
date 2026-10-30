@@ -19,18 +19,25 @@ describe('curated data integrity', () => {
     expect(shapeLibrary()).toBe(SHAPE_LIBRARY);
   });
 
-  it('every fixed shape plays all tones of its chord unless an omission is declared', () => {
+  it('every shape plays all tones of its chord (plus any slash bass) unless an omission is declared', () => {
     for (const shape of SHAPE_LIBRARY) {
       if (shape.omittedDegrees.length > 0) continue;
       const root = CHORD_ROOTS.find((option) => option.pitchClass === shape.rootPitchClass);
       if (!root) throw new Error(`no root option for pitch class ${shape.rootPitchClass}`);
-      const chord = buildChord(root.note, chordTypeById(shape.chordTypeId));
+      const bass =
+        shape.bassPitchClass === undefined
+          ? null
+          : (CHORD_ROOTS.find((option) => option.pitchClass === shape.bassPitchClass)?.note ??
+            null);
+      const chord = buildChord(root.note, chordTypeById(shape.chordTypeId), bass);
       const matches = shapesForChord(chord, [shape], STANDARD_TUNING);
       expect(matches, shape.id).toHaveLength(1);
       const sounding = new Set(
         matches[0].strings.flatMap((s) => (s.tone ? [s.tone.pitchClass] : [])),
       );
-      expect(sounding, shape.id).toEqual(new Set(chord.tones.map((tone) => tone.pitchClass)));
+      const expected = new Set(chord.tones.map((tone) => tone.pitchClass));
+      if (chord.bass) expected.add(chord.bass.pitchClass);
+      expect(sounding, shape.id).toEqual(expected);
     }
   });
 

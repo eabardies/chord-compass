@@ -37,6 +37,16 @@ export interface ShapeDefinition {
   readonly chordTypeId: string;
   /** Pitch class of the chord root the shape is written for. */
   readonly rootPitchClass: PitchClass;
+  /**
+   * For slash-chord shapes (C/B), the pitch class that must sound lowest. Absent for ordinary
+   * shapes, which only ever match chords without a slash bass.
+   */
+  readonly bassPitchClass?: PitchClass;
+  /**
+   * Explicit recommendation rank, lower first. Set only when the automatic ranking (verified,
+   * open, lowest position, smallest stretch, fewest barres) would pick the wrong shape.
+   */
+  readonly priority?: number;
   readonly kind: ShapeKind;
   /** Short name shown to users, e.g. "Open position" or "E-shape barre". */
   readonly label: string;

@@ -89,8 +89,11 @@ describe('transposing movable shapes', () => {
     const shapes = shapesForChord(chord('A', 'major'), SHAPE_LIBRARY, STANDARD_TUNING);
     expect(shapes.map((shape) => shape.positionLabel)).toEqual([
       'Open position',
-      '5th fret barre',
-      '12th fret barre',
+      '2nd fret barre', // G-shape
+      '5th fret barre', // E-shape
+      '7th fret', // D-shape
+      '9th fret barre', // C-shape
+      '12th fret barre', // A-shape
     ]);
   });
 

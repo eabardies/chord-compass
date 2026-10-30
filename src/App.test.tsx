@@ -275,6 +275,181 @@ describe('learn triads', () => {
   });
 });
 
+describe('chord finder', () => {
+  async function openFinder() {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: 'Chord finder' }));
+    return user;
+  }
+
+  const input = () => panel().getByLabelText('Chord symbol');
+  const shapeCode = () => screen.getByTestId('shape-code').textContent;
+  const playSteps = () =>
+    within(screen.getByRole('region', { name: 'Play this shape' }))
+      .getAllByRole('listitem')
+      .map((item) => item.textContent);
+  const stringCells = () =>
+    within(screen.getByRole('list', { name: 'Strings, low E to high e' }))
+      .getAllByRole('listitem')
+      .map((item) => item.getAttribute('aria-label'));
+
+  it('finds a chord with the button and shows the recommended shape straight away', async () => {
+    const user = await openFinder();
+    await user.type(input(), 'C/B');
+    await user.click(screen.getByRole('button', { name: 'Find chord' }));
+
+    expect(screen.getByRole('heading', { level: 3, name: 'C/B' })).toBeInTheDocument();
+    expect(screen.getByText('C major over B')).toBeInTheDocument();
+    const header = within(
+      screen.getByRole('heading', { level: 3, name: 'C/B' }).closest('header') as HTMLElement,
+    );
+    expect(header.getByText('Recommended shape')).toBeInTheDocument();
+    expect(header.getByText('Open position')).toBeInTheDocument();
+    expect(shapeCode()).toBe('x2x010');
+    expect(screen.getByRole('img', { name: 'C/B, open position, shape x2x010' })).toHaveAttribute(
+      'aria-description',
+      expect.stringContaining('string 5 2nd fret, finger 2 (B)'),
+    );
+    expect(playSteps()).toEqual([
+      'Start on string 5.',
+      'Strum toward the high e string.',
+      'Mute strings 6 and 4.',
+      'Let strings 3 and 1 ring open.',
+      'Finger 2 on string 5 fret 2, finger 1 on string 2 fret 1.',
+    ]);
+    expect(stringCells()).toEqual([
+      'String 6, low E, muted',
+      'String 5, A, fret 2, finger 2, start here',
+      'String 4, D, muted',
+      'String 3, G, open',
+      'String 2, B, fret 1, finger 1',
+      'String 1, high e, open',
+    ]);
+    expect(screen.getByRole('heading', { name: 'Other ways to play it' })).toBeInTheDocument();
+  });
+
+  it('searches when Enter is pressed and hides the alternatives for a single shape', async () => {
+    const user = await openFinder();
+    await user.type(input(), 'c/e{Enter}');
+    expect(screen.getByRole('heading', { level: 3, name: 'C/E' })).toBeInTheDocument();
+    expect(shapeCode()).toBe('032010');
+    expect(playSteps().slice(0, 2)).toEqual(['Start on string 6.', 'Strum all six strings.']);
+    expect(screen.queryByRole('heading', { name: 'Other ways to play it' })).toBeNull();
+  });
+
+  it('searches when an example is clicked', async () => {
+    const user = await openFinder();
+    await user.click(screen.getByRole('button', { name: 'B♭maj7/D' }));
+    expect(input()).toHaveValue('B♭maj7/D');
+    expect(screen.getByRole('heading', { level: 3, name: 'B♭maj7/D' })).toBeInTheDocument();
+    expect(screen.getByText('B♭ major seventh over D')).toBeInTheDocument();
+    expect(shapeCode()).toBe('x53335');
+    expect(playSteps()).toContain('Barre strings 4 to 2 at fret 3 with finger 1.');
+  });
+
+  it('switches to an alternative shape and updates the diagram and instructions together', async () => {
+    const user = await openFinder();
+    await user.click(screen.getByRole('button', { name: 'C/B' }));
+    const alternative = screen.getByRole('button', { name: /7x555x/ });
+    expect(alternative).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: /x2x010/ })).toHaveAccessibleName(
+      'Open position, x2x010, open, recommended',
+    );
+
+    await user.click(alternative);
+    expect(alternative).toHaveAttribute('aria-pressed', 'true');
+    expect(alternative).toHaveAccessibleName('5th fret barre, 7x555x, barre, selected');
+    expect(screen.getByText('Selected shape')).toBeInTheDocument();
+    expect(shapeCode()).toBe('7x555x');
+    expect(
+      screen.getByRole('img', { name: 'C/B, 5th fret barre, shape 7x555x' }),
+    ).toBeInTheDocument();
+    expect(playSteps()).toEqual([
+      'Start on string 6.',
+      'Strum down to string 2; do not hit string 1.',
+      'Mute strings 5 and 1.',
+      'Barre strings 4 to 2 at fret 5 with finger 1.',
+      'Finger 3 on string 6 fret 7.',
+    ]);
+    expect(stringCells()[0]).toBe('String 6, low E, fret 7, finger 3, start here');
+    expect(stringCells()[5]).toBe('String 1, high e, muted');
+    // The recommended option keeps its label; the chosen one is "selected", not "recommended".
+    expect(screen.getByRole('button', { name: /x2x010/ })).toHaveAccessibleName(
+      'Open position, x2x010, open, recommended',
+    );
+  });
+
+  it('accepts ASCII and musical accidentals', async () => {
+    const user = await openFinder();
+    await user.type(input(), 'F#m7{Enter}');
+    expect(screen.getByRole('heading', { level: 3, name: 'F♯m7' })).toBeInTheDocument();
+    expect(shapeCode()).toBe('242222');
+    expect(playSteps()).toContain('Barre strings 6 to 1 at fret 2 with finger 1.');
+
+    await user.clear(input());
+    await user.type(input(), 'F♯m7{Enter}');
+    expect(shapeCode()).toBe('242222');
+
+    await user.clear(input());
+    await user.type(input(), 'Bbmaj7/D{Enter}');
+    expect(screen.getByRole('heading', { level: 3, name: 'B♭maj7/D' })).toBeInTheDocument();
+  });
+
+  it('explains invalid notation, keeps the text and hides the previous result', async () => {
+    const user = await openFinder();
+    await user.click(screen.getByRole('button', { name: 'C/B' }));
+    expect(screen.getByRole('heading', { level: 3, name: 'C/B' })).toBeInTheDocument();
+
+    await user.clear(input());
+    await user.type(input(), 'Cxyz{Enter}');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '“xyz” is not a chord type this app knows. Supported types, written on C: C, Cm, C7, Cmaj7, Cm7, Csus2, Csus4, Cdim, Caug.',
+    );
+    expect(input()).toHaveValue('Cxyz');
+    expect(screen.queryByRole('heading', { level: 3, name: 'C/B' })).toBeNull();
+    expect(screen.queryByTestId('shape-code')).toBeNull();
+
+    await user.clear(input());
+    await user.type(input(), 'H{Enter}');
+    expect(screen.getByRole('alert')).toHaveTextContent('“H” does not start with a note name.');
+
+    await user.clear(input());
+    await user.type(input(), 'C/X{Enter}');
+    expect(screen.getByRole('alert')).toHaveTextContent('“X” after the slash is not a bass note.');
+  });
+
+  it('distinguishes a valid chord that has no verified shape yet', async () => {
+    const user = await openFinder();
+    await user.type(input(), 'C/F{Enter}');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'C/F is a valid chord, but there is no verified shape for it yet. Try C without the bass note, or one of the examples.',
+    );
+    expect(screen.queryByTestId('shape-code')).toBeNull();
+
+    await user.clear(input());
+    await user.type(input(), 'D/F#{Enter}');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'D/F♯ is in the library, but its fingering has not been verified by a player yet. The Explore chords tab shows it without finger numbers.',
+    );
+  });
+
+  it('keeps the search and the chosen shape when switching sections', async () => {
+    const user = await openFinder();
+    await user.click(screen.getByRole('button', { name: 'C/B' }));
+    await user.click(screen.getByRole('button', { name: /7x555x/ }));
+    expect(shapeCode()).toBe('7x555x');
+
+    await user.click(screen.getByRole('tab', { name: 'Learn triads' }));
+    expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Chord finder' }));
+    expect(input()).toHaveValue('C/B');
+    expect(screen.getByRole('heading', { level: 3, name: 'C/B' })).toBeInTheDocument();
+    expect(shapeCode()).toBe('7x555x');
+    expect(screen.getByRole('button', { name: /7x555x/ })).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
 describe('practise progressions', () => {
   it('updates chord names and diagrams when the key changes', async () => {
     const user = userEvent.setup();
