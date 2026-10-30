@@ -8,3 +8,4 @@ export * from './stringSets';
 export * from './fretPositioning';
 export * from './triadVoicing';
 export * from './finder';
+export * from './fretboardMap';

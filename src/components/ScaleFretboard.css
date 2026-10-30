@@ -1,0 +1,33 @@
+.scale-fretboard {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-body);
+}
+
+.scale-fretboard__board {
+  fill: var(--color-surface-raised);
+}
+
+.scale-fretboard__inlay {
+  fill: var(--color-border-strong);
+}
+
+.scale-fretboard__nut {
+  fill: var(--color-diagram-nut);
+}
+
+.scale-fretboard__fret {
+  stroke: var(--color-diagram-line);
+  stroke-width: 1;
+}
+
+.scale-fretboard__string {
+  stroke: var(--color-diagram-line);
+}
+
+.scale-fretboard__string-name,
+.scale-fretboard__fret-number {
+  font-size: 11px;
+  fill: var(--color-text-muted);
+}

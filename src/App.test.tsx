@@ -105,6 +105,132 @@ describe('explore chords', () => {
   });
 });
 
+describe('scale fretboard in explore chords', () => {
+  const fretboard = () => screen.getByRole('img', { name: /major scale on the fretboard/ });
+  const markers = (tone: string) =>
+    Array.from(fretboard().querySelectorAll(`[data-tone="${tone}"]`));
+  const labelsOf = (tone: string) =>
+    new Set(markers(tone).map((marker) => marker.getAttribute('data-label')));
+  const legend = () =>
+    within(screen.getByRole('list', { name: 'Fretboard legend' }))
+      .getAllByRole('listitem')
+      .map((item) => item.querySelector('span')?.textContent);
+  const chip = (name: RegExp) => screen.getByRole('button', { name });
+
+  it('renders A major with roots, chord tones and the other scale notes', async () => {
+    await generateChords('A');
+    expect(screen.getByRole('heading', { name: 'A major on the fretboard' })).toBeInTheDocument();
+    expect(fretboard()).toHaveAccessibleName('A major scale on the fretboard, A major highlighted');
+    expect(fretboard()).toHaveAttribute(
+      'aria-description',
+      'Frets 0 to 12, high e on top, low E at the bottom. Root A. Chord tones 3/C♯, 5/E. Other scale notes 2/B, 4/D, 6/F♯, 7/G♯.',
+    );
+    expect(markers('root')).toHaveLength(7);
+    expect(labelsOf('root')).toEqual(new Set(['1']));
+    expect(labelsOf('chord')).toEqual(new Set(['3', '5']));
+    expect(labelsOf('scale')).toEqual(new Set(['2', '4', '6', '7']));
+    expect(markers('altered')).toHaveLength(0);
+    expect(legend()).toEqual(['Root', 'Selected chord tone', 'Other scale note']);
+    expect(screen.getByRole('button', { name: 'Highlight selected chord' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('follows chord type and root changes, showing altered tones distinctly', async () => {
+    const user = await generateChords('A');
+    await user.click(chip(/^Am, A minor$/));
+    expect(fretboard()).toHaveAccessibleName('A major scale on the fretboard, A minor highlighted');
+    expect(labelsOf('altered')).toEqual(new Set(['♭3']));
+    expect(labelsOf('chord')).toEqual(new Set(['5']));
+    expect(labelsOf('scale')).toEqual(new Set(['2', '3', '4', '6', '7']));
+    expect(legend()).toContain('Altered chord tone');
+
+    await user.click(chip(/^A7, A dominant seventh$/));
+    expect(labelsOf('altered')).toEqual(new Set(['♭7']));
+    expect(labelsOf('scale')).toContain('7');
+
+    await user.click(chip(/^Am7, A minor seventh$/));
+    expect(labelsOf('altered')).toEqual(new Set(['♭3', '♭7']));
+
+    await user.click(chip(/^Aaug, A augmented$/));
+    await user.click(
+      within(screen.getByRole('group', { name: 'Fretboard dot labels' })).getByRole('button', {
+        name: 'Notes',
+      }),
+    );
+    expect(labelsOf('altered')).toEqual(new Set(['E♯']));
+
+    await user.selectOptions(panel().getByLabelText('Root note'), 'Bflat');
+    await user.click(screen.getByRole('button', { name: 'Generate chords' }));
+    expect(screen.getByRole('heading', { name: 'B♭ major on the fretboard' })).toBeInTheDocument();
+    // Still B♭ augmented: F is the natural fifth, so it is a plain scale note and F♯ is altered.
+    expect(labelsOf('scale')).toEqual(new Set(['C', 'E♭', 'F', 'G', 'A']));
+    expect(labelsOf('altered')).toEqual(new Set(['F♯']));
+    expect(labelsOf('root')).toEqual(new Set(['B♭']));
+  });
+
+  it('switches between degree, note and combined labels and keeps the choice', async () => {
+    const user = await generateChords('A');
+    const labels = () => within(screen.getByRole('group', { name: 'Fretboard dot labels' }));
+    await user.click(labels().getByRole('button', { name: 'Notes' }));
+    expect(labelsOf('root')).toEqual(new Set(['A']));
+    expect(labelsOf('chord')).toEqual(new Set(['C♯', 'E']));
+    await user.click(labels().getByRole('button', { name: 'Both' }));
+    expect(labelsOf('root')).toEqual(new Set(['1/A']));
+    expect(labelsOf('scale')).toEqual(new Set(['2/B', '4/D', '6/F♯', '7/G♯']));
+
+    await user.click(chip(/^Am, A minor$/));
+    expect(labels().getByRole('button', { name: 'Both' })).toHaveAttribute('aria-pressed', 'true');
+    expect(labelsOf('altered')).toEqual(new Set(['♭3/C']));
+  });
+
+  it('disables and re-enables chord highlighting', async () => {
+    const user = await generateChords('A');
+    await user.click(chip(/^Am7, A minor seventh$/));
+    const highlight = () => screen.getByRole('button', { name: 'Highlight selected chord' });
+    const scaleCount = markers('scale').length + markers('chord').length;
+
+    await user.click(highlight());
+    expect(highlight()).toHaveAttribute('aria-pressed', 'false');
+    expect(fretboard()).toHaveAccessibleName('A major scale on the fretboard');
+    expect(markers('chord')).toHaveLength(0);
+    expect(markers('altered')).toHaveLength(0);
+    expect(markers('root')).toHaveLength(7);
+    expect(markers('scale')).toHaveLength(scaleCount);
+    expect(legend()).toEqual(['Root', 'Other scale note']);
+
+    await user.click(chip(/^A7, A dominant seventh$/));
+    expect(highlight()).toHaveAttribute('aria-pressed', 'false');
+    await user.click(highlight());
+    expect(labelsOf('altered')).toEqual(new Set(['♭7']));
+  });
+
+  it('collapses and reopens, keeping the state across chord changes', async () => {
+    const user = await generateChords('A');
+    const toggle = () => screen.getByRole('button', { name: /fretboard$/ });
+    expect(toggle()).toHaveTextContent('Hide fretboard');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(toggle());
+    expect(toggle()).toHaveTextContent('Show fretboard');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('img', { name: /major scale on the fretboard/ })).toBeNull();
+
+    await user.click(chip(/^Am, A minor$/));
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    await user.click(toggle());
+    expect(fretboard()).toHaveAccessibleName('A major scale on the fretboard, A minor highlighted');
+  });
+
+  it('keeps the fretboard inside a horizontally scrolling container', async () => {
+    await generateChords('A');
+    const scroller = fretboard().parentElement as HTMLElement;
+    expect(scroller).toHaveStyle({ overflowX: 'auto' });
+    expect(fretboard().style.minWidth).toMatch(/^\d+px$/);
+  });
+});
+
 describe('learn triads', () => {
   async function openTriads() {
     const user = userEvent.setup();

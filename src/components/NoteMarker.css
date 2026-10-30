@@ -32,3 +32,26 @@
 .note-marker--root.note-marker--fretted .note-marker__pill {
   fill: var(--color-accent-strong);
 }
+
+/* Quiet: present but not emphasised (a scale note outside the chord). */
+.note-marker--quiet .note-marker__pill {
+  fill: var(--color-surface-raised);
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+}
+
+.note-marker--quiet .note-marker__label {
+  fill: var(--color-text-muted);
+}
+
+/* Altered: outside the reference scale. Dashed outline keeps it distinct without colour. */
+.note-marker--altered .note-marker__pill {
+  fill: var(--color-surface);
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+
+.note-marker--altered .note-marker__label {
+  fill: var(--color-text);
+}

@@ -70,6 +70,9 @@ Key ideas:
 - **Selections are state, results are derived.** Features store what the user picked (root,
   chord type, key, preferred shape id) and compute chords, voicings and progressions during
   render. There are no effects copying values around.
+- **The major scale is the reference, on paper and on the neck.** The scale reference and the
+  scale fretboard both show the chord root's major scale and mark the chord's altered tones
+  against it. See "Scale fretboard" below.
 - **Pitch class vs. spelling.** `PitchClass` (0–11) is what you hear; `NoteSpelling` (letter +
   accidental) is what you write. Chord tones are spelled by scale degree, so A augmented is
   A C♯ E♯ and C minor is C E♭ G. Guitar shapes compare pitch classes, then display the chord's
@@ -107,6 +110,38 @@ Key ideas:
 - "Minor" means natural minor throughout.
 - Chord roots offer both common spellings for black keys (C♯ and D♭). Keys are limited to those
   with at most seven sharps or flats.
+
+## Scale fretboard
+
+Below the major-scale reference, the explorer shows the selected root's **major scale across
+the fretboard** with the selected chord overlaid. It is a map of the reference scale, not of the
+chord's own scale: with Am selected it still shows A major, and marks Am's C as an altered
+tone on top of it.
+
+- **Orientation**: horizontal neck, high e at the top and low E at the bottom, as in
+  tablature; each string is labelled with its number and name. Frets 0 (open) to 12, nut
+  between 0 and 1, single inlays at 3, 5, 7 and 9, a double inlay at 12. Fret 12 repeats the
+  open strings an octave up, so it carries the same degree and spelling.
+- **Markers**: the root is filled with an extra ring; a selected chord tone is filled; another
+  scale note is a quiet outlined pill; an altered chord tone (♭3, ♭7, ♯5) is a dashed pill.
+  Shape, fill and text differ, so colour is never the only cue, and a legend repeats the
+  styles. Non-scale positions stay empty.
+- **Labels**: degrees (default), notes, or both ("3/C♯"). Scale tones print their major-scale
+  degree; altered chord tones print their chord-formula degree ("♭3/C"), never a wrong
+  scale degree.
+- **Highlight selected chord** (on by default) marks chord tones inside the scale and adds the
+  altered ones. Off, the fretboard shows the root and the scale only; the scale positions do
+  not move. **Hide fretboard** collapses the section. These three preferences survive changing
+  the root or chord; changing the shape of the same chord does not touch the fretboard.
+- **Spelling** follows the chord root's spelling by degree: B♭ major shows E♭, C♯ major shows
+  E♯ and B♯, A augmented shows E♯, A minor's third is C.
+- **Where it is computed**: `buildFretboardMap` in `domain/guitar/fretboardMap.ts` turns
+  open-string note + fret into a pitch class, then into scale degree, chord degree and spelled
+  note for every position. `features/chord-explorer/scaleFretboardViewModel.ts` turns those
+  into marker labels and styles; `components/ScaleFretboard.tsx` only draws. To support
+  another tuning, pass a different `GuitarTuning`; to show another scale, replace the
+  `scaleNotes({ mode: 'major' })` call with the scale's notes. No alternate-tuning or mode
+  controls are exposed yet.
 
 ## Chord finder
 

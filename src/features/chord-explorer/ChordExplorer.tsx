@@ -5,6 +5,7 @@ import { MajorScaleReference } from '../../components/MajorScaleReference';
 import { NoteList } from '../../components/NoteList';
 import { ShapeViewer } from '../../components/ShapeViewer';
 import { ToggleButtons } from '../../components/ToggleButtons';
+import { ScaleFretboardSection } from './ScaleFretboardSection';
 import {
   CHORD_ROOTS,
   CHORD_TYPES,
@@ -86,6 +87,8 @@ export function ChordExplorer() {
           />
 
           <MajorScaleReference reference={majorScaleReference(chord)} />
+
+          <ScaleFretboardSection chord={chord} />
 
           <div className="panels">
             <Card title={chord.name} badge={selectedShape?.positionLabel}>
