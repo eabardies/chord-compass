@@ -4,3 +4,6 @@ export * from './transpose';
 export * from './voicing';
 export * from './validate';
 export * from './describe';
+export * from './stringSets';
+export * from './fretPositioning';
+export * from './triadVoicing';

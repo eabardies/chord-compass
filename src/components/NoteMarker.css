@@ -1,0 +1,34 @@
+.note-marker__label {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
+.note-marker--fretted .note-marker__pill {
+  fill: var(--color-dot);
+}
+
+.note-marker--fretted .note-marker__label {
+  fill: var(--color-dot-text);
+}
+
+.note-marker--open .note-marker__pill {
+  fill: var(--color-surface);
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+}
+
+.note-marker--open .note-marker__label {
+  fill: var(--color-text);
+}
+
+/* The root is marked by an extra ring, not only by colour. */
+.note-marker__ring {
+  fill: none;
+  stroke: var(--color-accent-strong);
+  stroke-width: 1.5;
+}
+
+.note-marker--root.note-marker--fretted .note-marker__pill {
+  fill: var(--color-accent-strong);
+}

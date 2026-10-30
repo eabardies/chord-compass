@@ -59,7 +59,7 @@ export function harmonizeKey(key: Key): DiatonicTriad[] {
   return scale.map((root, index) => {
     const third = scale[(index + 2) % scale.length];
     const fifth = scale[(index + 4) % scale.length];
-    const quality = triadQuality(root, third, fifth);
+    const quality = classifyTriad(root, third, fifth);
     return {
       degree: index + 1,
       numeral: romanNumeral(index + 1, quality),
@@ -71,7 +71,15 @@ export function harmonizeKey(key: Key): DiatonicTriad[] {
   });
 }
 
-function triadQuality(root: NoteSpelling, third: NoteSpelling, fifth: NoteSpelling): TriadQuality {
+/**
+ * Classify three spelled notes as a triad by their sounding intervals above the root. Shared
+ * by key harmonization and by `buildTriad`, so a formula and a harmonized degree agree.
+ */
+export function classifyTriad(
+  root: NoteSpelling,
+  third: NoteSpelling,
+  fifth: NoteSpelling,
+): TriadQuality {
   const rootPc = pitchClassOf(root);
   const thirdSemitones = normalizePitchClass(pitchClassOf(third) - rootPc);
   const fifthSemitones = normalizePitchClass(pitchClassOf(fifth) - rootPc);

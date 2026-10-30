@@ -110,10 +110,27 @@ Only the `dominant7` override currently has a numeral spelling (`V7`); add a cas
 Add an expectation to `src/domain/progressions/progressions.test.ts` with the chord symbols in
 at least one key.
 
+## Adding a triad quality or string set
+
+The "Learn triads" tab derives everything from a chord type, a string set and standard tuning;
+there are no per-root shape tables to extend.
+
+- **Quality**: append it to `LEARNABLE_TRIAD_QUALITIES` in `src/data/triads.ts`. The chord
+  type of the same name must exist (`chordTypeForTriad`) and have a formula on degrees 1, 3
+  and 5; `buildTriad` rejects anything else. Add its spellings to
+  `src/domain/music/triads.test.ts`. The exhaustive voicing test in
+  `src/domain/guitar/triadVoicing.test.ts` then checks every root on every set and fails if a
+  shape exceeds the span limit, in which case decide whether to raise
+  `GENERATED_MAX_FRET_SPAN` or document the gap.
+- **String set**: add an `adjacentStrings(n)` entry to `TRIAD_STRING_SETS` in
+  `src/domain/guitar/stringSets.ts`, where `n` is the highest (thinnest) string number of the
+  group. The display name, the low-to-high description and the control button follow from it.
+  Add the expected indexes and description to the string-set tests.
+
 ## Tests
 
-- Domain tests (`src/domain/**/**.test.ts`) cover spelling, harmonization, transposition and
-  validation. They need no DOM.
+- Domain tests (`src/domain/**/**.test.ts`) cover spelling, harmonization, transposition,
+  validation and generated triad voicings. They need no DOM.
 - `src/data/data.test.ts` validates the curated data; it is the first thing to run when a shape
   looks wrong.
 - `src/App.test.tsx` holds integration tests for the main user flows and queries by role and

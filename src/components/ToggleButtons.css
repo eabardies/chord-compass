@@ -30,3 +30,24 @@
   border-color: var(--color-accent);
   color: var(--color-accent-text);
 }
+
+.toggle-buttons__button--stacked {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+  line-height: 1.2;
+}
+
+.toggle-buttons__hint {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.toggle-buttons__button[aria-pressed='true'] .toggle-buttons__hint {
+  color: inherit;
+}

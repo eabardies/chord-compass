@@ -14,7 +14,11 @@ interface TabsProps<Id extends string> {
   onChange: (id: Id) => void;
 }
 
-/** WAI-ARIA tabs: arrow keys move between tabs, the panel is labelled by its tab. */
+/**
+ * WAI-ARIA tabs: arrow keys move between tabs, the panel is labelled by its tab. Inactive
+ * panels stay mounted but hidden, so each feature keeps its selections when the user
+ * switches tabs and comes back.
+ */
 export function Tabs<Id extends string>({ label, tabs, value, onChange }: TabsProps<Id>) {
   const baseId = useId();
   const activeIndex = tabs.findIndex((tab) => tab.id === value);
@@ -59,7 +63,7 @@ export function Tabs<Id extends string>({ label, tabs, value, onChange }: TabsPr
           hidden={tab.id !== value}
           className="tabs__panel"
         >
-          {tab.id === value && tab.content}
+          {tab.content}
         </div>
       ))}
     </div>

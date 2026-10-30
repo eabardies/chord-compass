@@ -4,8 +4,9 @@ import { STANDARD_TUNING } from './domain/guitar';
 import { noteName } from './domain/music';
 import { ChordExplorer } from './features/chord-explorer/ChordExplorer';
 import { ProgressionPractice } from './features/progression-practice/ProgressionPractice';
+import { TriadLearning } from './features/triad-learning/TriadLearning';
 
-type TabId = 'explore' | 'practise';
+type TabId = 'explore' | 'triads' | 'practise';
 
 export function App() {
   const [tab, setTab] = useState<TabId>('explore');
@@ -40,6 +41,7 @@ export function App() {
           onChange={setTab}
           tabs={[
             { id: 'explore', label: 'Explore chords', content: <ChordExplorer /> },
+            { id: 'triads', label: 'Learn triads', content: <TriadLearning /> },
             { id: 'practise', label: 'Practise progressions', content: <ProgressionPractice /> },
           ]}
         />

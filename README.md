@@ -1,7 +1,8 @@
 # Chord Compass
 
 A guitar learning web app for exploring chord types, understanding their formulas and notes,
-seeing verified guitar shapes, and practising common chord progressions. Runs entirely in the
+seeing verified guitar shapes, learning triad inversions across the neck, and practising common
+chord progressions. Runs entirely in the
 browser: no accounts, backend, or paid APIs. Standard tuning (E A D G B E) only.
 
 ## Setup
@@ -49,13 +50,15 @@ Feature-oriented layout with independent domain modules. The dependency directio
 src/
   domain/
     music/          notes, intervals, chord construction, scales, keys, harmonization
-    guitar/         tuning, shape types, movable-shape transposition, voicing, validation
+    guitar/         tuning, shape types, movable-shape transposition, voicing, validation,
+                    three-string sets, generated triad voicings
     progressions/   progression templates instantiated in a key
   data/             curated chord types, root options, verified shapes, progression templates
   features/
     chord-explorer/        "Explore chords" tab: state and orchestration
+    triad-learning/        "Learn triads" tab: state, view models for the triad diagrams
     progression-practice/ "Practise progressions" tab: state and orchestration
-  components/       reusable presentation: ChordDiagram, ShapeViewer, NoteList, Tabs, ...
+  components/       reusable presentation: ChordDiagram, TriadDiagram, TriadFretboard, Tabs, ...
   styles/           design tokens and base styles (plain CSS, light and dark themes)
 ```
 
@@ -78,6 +81,10 @@ Key ideas:
   muted strings, and refuses positions outside frets 1–15. Every shape is validated for chord
   membership, required tones, declared omissions, barre and finger consistency
   (`assertValidShapeLibrary`), and the library is validated once on first use.
+- **Curated shapes vs. generated triad voicings.** Six-string chord shapes are hand-verified
+  data. Triad inversions are derived instead: three strings, one chord tone per string, and the
+  most compact fret for each (see "Learn triads" below). Tabs keep their panels mounted, so each
+  feature keeps its selections when you switch tabs.
 - **Musical validation vs. human verification.** Validation proves the notes are right.
   `playability: 'verified'` records that a person confirmed the fingering is comfortable;
   unverified fingerings render without finger numbers and say so.
@@ -93,6 +100,36 @@ Key ideas:
 - "Minor" means natural minor throughout.
 - Chord roots offer both common spellings for black keys (C♯ and D♭). Keys are limited to those
   with at most seven sharps or flats.
+
+## Learn triads
+
+The "Learn triads" tab teaches how one triad appears in root position, first inversion and
+second inversion on three adjacent strings, and how those three shapes line up along the neck.
+Each step is shown explicitly: chord formula → chord notes → inversion order → fret positions.
+
+- **Qualities**: major (`1–3–5`) and minor (`1–♭3–5`). The quality is a chord type whose
+  formula has degrees 1, 3 and 5, so diminished and augmented can be added without new logic.
+- **String sets**: strings 1–2–3, 2–3–4 and 3–4–5 (guitar numbering, 1 = high E).
+- **String ordering**: internally every set is a low-to-high list of string indexes, like
+  every other fret list in the app. The interface writes each set low to high next to its name
+  so the two conventions never clash: strings 1–2–3 are `3–2–1 · G–B–e`, strings 2–3–4 are
+  `4–3–2 · D–G–B`, strings 3–4–5 are `5–4–3 · A–D–G`. The inversion cards draw the lowest
+  string on the left; the fretboard view draws the highest string on top, as tablature does.
+- **Inversion order** (low to high): root position `1–3–5`, first inversion `3–5–1`,
+  second inversion `5–1–3`, with `♭3` for minor.
+- **How shapes are calculated** (`domain/guitar/triadVoicing.ts`): each string of the set
+  is assigned the tone the inversion puts in that voice. Every fret from 0 to 15 where the
+  string sounds that pitch class is a candidate (an open-string note is also available at
+  fret 12). Of all combinations, the one with the smallest fret span wins; ties go to the
+  lower position. Nothing is hard-coded per root.
+- **Playability rule**: span is the distance between the lowest and highest fret with open
+  strings counted as fret 0, so `0–11–9` is a stretch of 11 and `12–11–9` wins for A major
+  on strings 3–4–5. A voicing whose most compact occurrence still spans more than
+  `MAX_FRET_SPAN` (4 frets) is flagged `playable: false` and the UI says so; with standard
+  tuning and the current sets no generated shape needs that flag (tested).
+- **Beyond fret 12**: shapes that straddle the octave (C minor, second inversion on G–B–e is
+  `12–13–11`) reach fret 13, so the fretboard view, normally frets 0–12, extends as far as the
+  highest fret in use.
 
 ## Shape coverage and limitations
 

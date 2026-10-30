@@ -1,0 +1,168 @@
+.triad-controls .field {
+  min-width: 0;
+}
+
+.field__hint {
+  font-weight: 400;
+}
+
+/* Summary strip: name, formula, notes */
+.triad-summary {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-6);
+}
+
+.triad-summary__name {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.triad-summary__facts,
+.triad-card__facts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+}
+
+.triad-summary__fact,
+.triad-card__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.triad-summary__fact dt,
+.triad-card__fact dt {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.triad-summary__fact dd,
+.triad-card__fact dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.triad-summary .note-text {
+  flex-basis: 100%;
+}
+
+/* Inversion cards */
+.triad-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 48rem) {
+  .triad-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.triad-grid__item {
+  min-width: 0;
+}
+
+.triad-grid__item .card {
+  height: 100%;
+}
+
+.triad-card__facts {
+  gap: var(--space-2) var(--space-4);
+}
+
+.triad-card__fact dd {
+  font-size: var(--font-size-md);
+}
+
+.triad-card__caption {
+  text-align: center;
+}
+
+.triad-card__warning {
+  color: var(--color-text);
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--space-3);
+}
+
+/* Across the fretboard */
+.triad-fretboard-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.triad-fretboard-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.triad-fretboard-section__title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.triad-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.triad-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.triad-legend__swatch {
+  width: 2.5rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+/* The neck keeps its natural width and scrolls sideways on narrow screens. */
+.triad-fretboard-section__scroller {
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.triad-fretboard-section__scroller:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.triad-fretboard-section__scroller .triad-fretboard {
+  min-width: 100%;
+}

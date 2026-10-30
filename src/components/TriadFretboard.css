@@ -1,0 +1,50 @@
+.triad-fretboard {
+  display: block;
+  max-width: none;
+  height: auto;
+  font-family: var(--font-body);
+}
+
+.triad-fretboard__board {
+  fill: var(--color-surface-raised);
+}
+
+.triad-fretboard__inlay {
+  fill: var(--color-border-strong);
+}
+
+.triad-fretboard__nut {
+  fill: var(--color-diagram-nut);
+}
+
+.triad-fretboard__fret {
+  stroke: var(--color-diagram-line);
+  stroke-width: 1;
+}
+
+.triad-fretboard__string {
+  stroke: var(--color-diagram-line);
+  stroke-width: 1.25;
+}
+
+.triad-fretboard__string-name,
+.triad-fretboard__fret-number {
+  font-size: 11px;
+  fill: var(--color-text-muted);
+}
+
+.triad-fretboard__group {
+  fill: var(--color-barre);
+  stroke: var(--color-accent);
+  stroke-width: 1;
+}
+
+.triad-fretboard__group--stretch {
+  stroke-dasharray: 4 3;
+}
+
+.triad-fretboard__group-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--color-accent-text);
+}

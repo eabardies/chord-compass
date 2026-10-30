@@ -9,6 +9,7 @@ export { CHORD_ROOTS, KEY_TONICS, closestRootOption, rootOptionById } from './ro
 export type { RootOption } from './roots';
 export { PROGRESSION_TEMPLATES, TWELVE_BAR_BLUES, progressionsForMode } from './progressions';
 export { SHAPE_LIBRARY } from './shapes';
+export { LEARNABLE_TRIAD_QUALITIES, TRIAD_QUALITY_LABELS } from './triads';
 
 export const CHORD_TYPE_CATALOG: ChordTypeCatalog = {
   byId: chordTypeById,
