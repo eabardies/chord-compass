@@ -72,6 +72,7 @@
 .scale-reference__note {
   font-size: var(--font-size-lg);
   font-weight: 700;
+  color: inherit;
 }
 
 .scale-reference__degree--altered .scale-reference__note {
@@ -93,4 +94,5 @@
 
 .scale-reference__summary {
   font-weight: 600;
+  color: var(--color-text-primary);
 }

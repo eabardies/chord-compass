@@ -10,7 +10,7 @@
 }
 
 .scale-fretboard__inlay {
-  fill: var(--color-border-strong);
+  fill: var(--color-inlay);
 }
 
 .scale-fretboard__nut {

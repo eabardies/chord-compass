@@ -20,6 +20,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Tabs keep inactive panels mounted so feature state survives switching; integration tests scope queries to the visible tabpanel.
 - Features store selections and derive everything during render. No effects that copy derived values into state. Shape preference is stored as a shape _definition id_ so the choice survives changing root or key.
 
+## Theming
+
+- Two explicit themes via `data-theme` on `<html>`; never use `prefers-color-scheme` media queries or `light-dark()` in component CSS. Use semantic token pairs from `src/styles/tokens.css` (surface with its foreground partner). No hex colours outside that file.
+- The inline script in `index.html` and `src/theme/themeResolution.ts` must agree on the storage key `chord-compass-theme` and the values `light`/`dark`.
+
 ## Curated data
 
 - `src/data/shapes.ts` is hand-verified data, not generated. Do not add a shape because its notes fit; add shapes a guitarist actually plays, and set `playability: 'unverified'` unless the fingering has been played. The UI hides finger numbers for unverified shapes.

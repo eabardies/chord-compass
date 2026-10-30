@@ -18,22 +18,24 @@
   background: var(--color-surface-raised);
 }
 
+/* The cell sits on the muted surface; every text layer names its own foreground. */
 .string-notes__string {
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 .string-notes__note {
   font-weight: 700;
   font-size: var(--font-size-md);
+  color: var(--color-text-primary);
 }
 
 .string-notes__note--muted {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .string-notes__degree {
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }

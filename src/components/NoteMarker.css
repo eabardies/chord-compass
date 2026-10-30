@@ -4,54 +4,56 @@
   font-family: var(--font-body);
 }
 
+/* Filled: a chord tone. */
 .note-marker--fretted .note-marker__pill {
-  fill: var(--color-dot);
+  fill: var(--color-chord-tone);
 }
 
 .note-marker--fretted .note-marker__label {
-  fill: var(--color-dot-text);
+  fill: var(--color-chord-tone-text);
 }
 
+/* Outlined: an open string. */
 .note-marker--open .note-marker__pill {
   fill: var(--color-surface);
-  stroke: var(--color-text);
+  stroke: var(--color-text-primary);
   stroke-width: 1.5;
 }
 
 .note-marker--open .note-marker__label {
-  fill: var(--color-text);
+  fill: var(--color-text-primary);
 }
 
 /* The root is marked by an extra ring, not only by colour. */
 .note-marker__ring {
   fill: none;
-  stroke: var(--color-accent-strong);
+  stroke: var(--color-accent-hover);
   stroke-width: 1.5;
 }
 
 .note-marker--root.note-marker--fretted .note-marker__pill {
-  fill: var(--color-accent-strong);
+  fill: var(--color-accent-hover);
 }
 
-/* Quiet: present but not emphasised (a scale note outside the chord). */
+/* Quiet: a scale note outside the chord, on the scale-tone surface. */
 .note-marker--quiet .note-marker__pill {
-  fill: var(--color-surface-raised);
-  stroke: var(--color-border-strong);
+  fill: var(--color-scale-tone);
+  stroke: var(--color-input-border);
   stroke-width: 1;
 }
 
 .note-marker--quiet .note-marker__label {
-  fill: var(--color-text-muted);
+  fill: var(--color-scale-tone-text);
 }
 
-/* Altered: outside the reference scale. Dashed outline keeps it distinct without colour. */
+/* Altered: outside the reference scale. Own colour plus a dashed ring for greyscale. */
 .note-marker--altered .note-marker__pill {
-  fill: var(--color-surface);
-  stroke: var(--color-text);
-  stroke-width: 1.5;
+  fill: var(--color-altered-tone);
+  stroke: var(--color-altered-tone-text);
+  stroke-width: 1.25;
   stroke-dasharray: 3 2;
 }
 
 .note-marker--altered .note-marker__label {
-  fill: var(--color-text);
+  fill: var(--color-altered-tone-text);
 }

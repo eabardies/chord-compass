@@ -15,9 +15,14 @@
   margin-bottom: var(--space-4);
 }
 
+.card {
+  color: var(--color-text-primary);
+}
+
 .card__title {
   font-size: var(--font-size-lg);
   font-weight: 700;
+  color: var(--color-text-primary);
 }
 
 .card__badge {

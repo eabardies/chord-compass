@@ -4,6 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
+    <script>
+      // Apply the saved or system theme before first paint. Mirrors src/theme/themeResolution.ts:
+      // key "chord-compass-theme", values "light" | "dark", anything else means "system".
+      (function () {
+        var theme = null;
+        try {
+          theme = window.localStorage.getItem('chord-compass-theme');
+        } catch (error) {
+          theme = null;
+        }
+        if (theme !== 'light' && theme !== 'dark') {
+          var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          theme = dark ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <meta
       name="description"
       content="Chord Compass: explore guitar chord types, their notes, playable shapes, and common progressions."

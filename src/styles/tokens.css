@@ -1,29 +1,111 @@
 /*
- * Design tokens. Light theme uses warm neutrals with a restrained green accent; the dark
- * theme follows the system preference. Components only ever reference these variables.
+ * Design tokens. Two explicit themes selected by `data-theme` on <html> (set before first
+ * paint by the inline script in index.html, then kept in step by ThemeProvider). Nothing here
+ * depends on `prefers-color-scheme` or `light-dark()`: the resolved theme is always explicit,
+ * so every foreground is paired with the surface it sits on.
+ *
+ * Naming: semantic tokens (`--color-text-primary`, `--color-chord-tone`) are the ones to use.
+ * The short names below them (`--color-text`, `--color-dot`) are aliases kept for the existing
+ * stylesheets and always point at a semantic token; never give an alias its own value.
+ *
+ * Every surface token has a foreground partner:
+ *   background / surface / surface-muted  ->  text-primary, text-secondary
+ *   accent                                ->  text-on-accent
+ *   selected-surface                      ->  selected-text
+ *   scale-tone / chord-tone / altered-tone ->  *-tone-text
+ *   error-surface                         ->  error
+ * Contrast is checked against the actual surface (see README, "Theming").
  */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --color-background: #faf8f3;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f1e9;
+
+  --color-text-primary: #20332f;
+  --color-text-secondary: #5c6b63;
+  --color-text-on-accent: #ffffff;
+
+  --color-border: #dedfd6;
+  --color-input-border: #83897f;
+  --color-focus-ring: #24684c;
+
+  --color-accent: #24684c;
+  --color-accent-hover: #1c543d;
+  --color-selected-surface: #dde9e0;
+  --color-selected-text: #1b4a2f;
+
+  --color-scale-tone: #dde9e0;
+  --color-scale-tone-text: #20332f;
+  --color-chord-tone: #24684c;
+  --color-chord-tone-text: #ffffff;
+  --color-altered-tone: #9a5612;
+  --color-altered-tone-text: #ffffff;
+
+  --color-error: #9f2f1f;
+  --color-error-surface: #fbeae6;
+
+  --color-diagram-line: #64736b;
+  --color-diagram-nut: #20332f;
+  --color-barre: rgb(36 104 76 / 0.3);
+  --color-inlay: #c9ccc2;
+
+  --shadow-sm: 0 1px 2px rgb(32 51 47 / 0.06);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-background: #171b1b;
+  --color-surface: #202626;
+  --color-surface-muted: #29302d;
+
+  --color-text-primary: #e6eee8;
+  --color-text-secondary: #a8b8ae;
+  --color-text-on-accent: #16281d;
+
+  --color-border: #3b4740;
+  --color-input-border: #6f7d74;
+  --color-focus-ring: #a6d6b5;
+
+  --color-accent: #a6d6b5;
+  --color-accent-hover: #bfe3ca;
+  --color-selected-surface: #2a4537;
+  --color-selected-text: #dbf0e1;
+
+  --color-scale-tone: #33483c;
+  --color-scale-tone-text: #e6eee8;
+  --color-chord-tone: #a6d6b5;
+  --color-chord-tone-text: #16281d;
+  --color-altered-tone: #efb96c;
+  --color-altered-tone-text: #2c1b08;
+
+  --color-error: #f2a596;
+  --color-error-surface: #3a2420;
+
+  --color-diagram-line: #97a59c;
+  --color-diagram-nut: #e6eee8;
+  --color-barre: rgb(166 214 181 / 0.3);
+  --color-inlay: #4a5750;
+
+  --shadow-sm: none;
+}
+
+/* Aliases used by the existing stylesheets. Each points at a semantic token above. */
 :root {
-  color-scheme: light dark;
-
-  --color-bg: #f4f1ea;
-  --color-surface: #fffdf8;
-  --color-surface-raised: #efebe2;
-  --color-text: #262320;
-  --color-text-muted: #6d665d;
-  --color-border: #ddd6c9;
-  --color-border-strong: #c7bfaf;
-
-  --color-accent: #2f7d4f;
-  --color-accent-strong: #22613c;
-  --color-accent-soft: #dcefe1;
-  --color-accent-text: #1b4a2f;
-  --color-on-accent: #ffffff;
-
-  --color-diagram-line: #6d665d;
-  --color-diagram-nut: #262320;
-  --color-dot: #2f7d4f;
-  --color-dot-text: #ffffff;
-  --color-barre: rgb(47 125 79 / 0.35);
+  --color-bg: var(--color-background);
+  --color-surface-raised: var(--color-surface-muted);
+  --color-text: var(--color-text-primary);
+  --color-text-muted: var(--color-text-secondary);
+  --color-border-strong: var(--color-input-border);
+  --color-accent-strong: var(--color-accent-hover);
+  --color-accent-soft: var(--color-selected-surface);
+  --color-accent-text: var(--color-selected-text);
+  --color-on-accent: var(--color-text-on-accent);
+  --color-dot: var(--color-chord-tone);
+  --color-dot-text: var(--color-chord-tone-text);
 
   --font-body: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
   --font-size-xs: 0.75rem;
@@ -44,33 +126,8 @@
   --radius-md: 12px;
   --radius-lg: 16px;
 
-  --shadow-sm: 0 1px 2px rgb(38 35 32 / 0.06);
-  --focus-ring: 0 0 0 3px var(--color-bg), 0 0 0 5px var(--color-accent);
+  --focus-ring: 0 0 0 3px var(--color-background), 0 0 0 5px var(--color-focus-ring);
   --content-max-width: 72rem;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #121413;
-    --color-surface: #1a1d1b;
-    --color-surface-raised: #232724;
-    --color-text: #e9e6df;
-    --color-text-muted: #a39e95;
-    --color-border: #2c312e;
-    --color-border-strong: #3c423e;
-
-    --color-accent: #b7e2c0;
-    --color-accent-strong: #cdebd3;
-    --color-accent-soft: #22312a;
-    --color-accent-text: #d9f1df;
-    --color-on-accent: #10231a;
-
-    --color-diagram-line: #8f8a82;
-    --color-diagram-nut: #e9e6df;
-    --color-dot: #b7e2c0;
-    --color-dot-text: #10231a;
-    --color-barre: rgb(183 226 192 / 0.3);
-
-    --shadow-sm: none;
-  }
+  --theme-transition: 150ms ease;
 }

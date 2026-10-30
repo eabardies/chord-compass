@@ -2,4 +2,5 @@
   font-size: var(--font-size-lg);
   font-weight: 600;
   margin: var(--space-2) 0 var(--space-3);
+  color: var(--color-text-primary);
 }

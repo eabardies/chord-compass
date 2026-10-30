@@ -8,18 +8,22 @@
 .tabs__tab {
   min-height: 2.75rem;
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-input-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-text-primary);
   font-weight: 600;
   cursor: pointer;
 }
 
-.tabs__tab[aria-selected='true'] {
-  background: var(--color-accent-soft);
+.tabs__tab:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent-text);
+}
+
+.tabs__tab[aria-selected='true'] {
+  background: var(--color-selected-surface);
+  border-color: var(--color-accent);
+  color: var(--color-selected-text);
 }
 
 .tabs__panel:focus {

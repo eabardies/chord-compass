@@ -62,7 +62,8 @@ src/
     triad-learning/        "Learn triads" tab: state, view models for the triad diagrams
     progression-practice/ "Practise progressions" tab: state and orchestration
   components/       reusable presentation: ChordDiagram, TriadDiagram, TriadFretboard, Tabs, ...
-  styles/           design tokens and base styles (plain CSS, light and dark themes)
+  styles/           design tokens (explicit light and dark themes) and base styles
+  theme/            ThemeProvider, useTheme, ThemeToggle, resolution and storage helpers
 ```
 
 Key ideas:
@@ -94,6 +95,42 @@ Key ideas:
 - **Musical validation vs. human verification.** Validation proves the notes are right.
   `playability: 'verified'` records that a person confirmed the fingering is comfortable;
   unverified fingerings render without finger numbers and say so.
+
+## Theming
+
+The app has explicit light and dark themes, switched from the toggle in the header.
+
+- **Preference**: `system` until the user toggles, then `light` or `dark`. While it is
+  `system` the app follows the operating system live; an explicit choice is never
+  overridden by an OS change. The choice is stored in `localStorage` under
+  `chord-compass-theme` (values `light` or `dark`; anything else means `system`).
+  Storage that is missing, blocked or malformed degrades to `system`.
+- **No flash**: a few lines of inline script in `index.html` read the same key and set
+  `data-theme` on `<html>` before the bundle loads. `ThemeProvider` (in `src/theme`)
+  owns the preference afterwards and keeps the attribute in step. The script and
+  `themeResolution.ts` must agree on the key and values; a test checks this.
+- **Tokens** (`src/styles/tokens.css`): both themes define the same semantic tokens under
+  `[data-theme="light"]` and `[data-theme="dark"]`. Every surface has a paired foreground,
+  and components must use the pair, never a surface with an inherited colour:
+
+  | Surface                                                                      | Foreground                                       |
+  | ---------------------------------------------------------------------------- | ------------------------------------------------ |
+  | `--color-background`, `--color-surface`, `--color-surface-muted`             | `--color-text-primary`, `--color-text-secondary` |
+  | `--color-accent` (buttons)                                                   | `--color-text-on-accent`                         |
+  | `--color-selected-surface` (pressed/selected controls)                       | `--color-selected-text`                          |
+  | `--color-chord-tone`, `--color-scale-tone`, `--color-altered-tone` (markers) | the matching `--color-*-tone-text`               |
+  | `--color-error-surface`                                                      | `--color-error`                                  |
+
+  Short aliases (`--color-text`, `--color-dot`, ...) exist for older stylesheets and always
+  point at a semantic token. Add a new colour by defining it in both theme blocks with its
+  foreground partner, checking the pair against the real surface it sits on (WCAG AA: 4.5:1
+  text, 3:1 control boundaries), and never with `light-dark()` or a media query.
+
+- **SVGs** use classes whose `fill`/`stroke` reference the tokens (`NoteMarker.css`,
+  `ChordDiagram.css`, the fretboards), so a theme change re-colours them without a redraw.
+  Icons use `currentColor`. No hex values live outside `tokens.css`.
+- **Transitions**: background, text, border, fill and stroke ease over 150 ms on a theme
+  change only; `prefers-reduced-motion: reduce` disables them.
 
 ## Musical conventions
 

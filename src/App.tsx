@@ -6,10 +6,20 @@ import { ChordExplorer } from './features/chord-explorer/ChordExplorer';
 import { ChordFinder } from './features/chord-finder/ChordFinder';
 import { ProgressionPractice } from './features/progression-practice/ProgressionPractice';
 import { TriadLearning } from './features/triad-learning/TriadLearning';
+import { ThemeProvider } from './theme/ThemeProvider';
+import { ThemeToggle } from './theme/ThemeToggle';
 
 type TabId = 'explore' | 'finder' | 'triads' | 'practise';
 
 export function App() {
+  return (
+    <ThemeProvider>
+      <AppShell />
+    </ThemeProvider>
+  );
+}
+
+function AppShell() {
   const [tab, setTab] = useState<TabId>('explore');
   const tuningNotes = STANDARD_TUNING.strings.map(noteName).join(' ');
 
@@ -29,10 +39,11 @@ export function App() {
             <path d="M12 5l2.5 7L12 19l-2.5-7z" fill="currentColor" stroke="none" />
           </svg>
         </span>
-        <div>
+        <div className="app__identity">
           <h1 className="app__title">Chord Compass</h1>
           <p className="app__tagline">Find the shape. Understand the sound.</p>
         </div>
+        <ThemeToggle />
       </header>
 
       <main className="app__main">

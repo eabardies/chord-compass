@@ -21,6 +21,7 @@
 .note-list__label {
   font-weight: 700;
   font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
 }
 
 .note-list__sublabel {

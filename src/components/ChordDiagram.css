@@ -19,29 +19,29 @@
 .chord-diagram__fret-number,
 .chord-diagram__string-name {
   font-size: 11px;
-  fill: var(--color-text-muted);
+  fill: var(--color-text-secondary);
 }
 
 .chord-diagram__muted {
   font-size: 14px;
   font-weight: 600;
-  fill: var(--color-text-muted);
+  fill: var(--color-text-secondary);
 }
 
 .chord-diagram__open {
   fill: none;
-  stroke: var(--color-text);
+  stroke: var(--color-text-primary);
   stroke-width: 1.5;
 }
 
 .chord-diagram__dot {
-  fill: var(--color-dot);
+  fill: var(--color-chord-tone);
 }
 
 .chord-diagram__finger {
   font-size: 10px;
   font-weight: 700;
-  fill: var(--color-dot-text);
+  fill: var(--color-chord-tone-text);
 }
 
 .chord-diagram__barre {

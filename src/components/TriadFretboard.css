@@ -10,7 +10,7 @@
 }
 
 .triad-fretboard__inlay {
-  fill: var(--color-border-strong);
+  fill: var(--color-inlay);
 }
 
 .triad-fretboard__nut {
@@ -46,5 +46,5 @@
 .triad-fretboard__group-label {
   font-size: 11px;
   font-weight: 600;
-  fill: var(--color-accent-text);
+  fill: var(--color-text-primary);
 }

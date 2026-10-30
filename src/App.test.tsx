@@ -1,7 +1,9 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { App } from './App';
+import { installMatchMedia, setSystemDark } from './test/matchMedia';
+import { THEME_STORAGE_KEY } from './theme/themeResolution';
 
 /** The visible tab panel. Hidden panels stay mounted, so queries are scoped to the active one. */
 const panel = () => within(screen.getByRole('tabpanel'));
@@ -13,6 +15,100 @@ async function generateChords(root: string) {
   await user.click(screen.getByRole('button', { name: 'Generate chords' }));
   return user;
 }
+
+describe('theme', () => {
+  const toggle = () => screen.getByRole('button', { name: /Switch to (dark|light) mode/ });
+  const theme = () => document.documentElement.getAttribute('data-theme');
+
+  it('renders light by default and follows a dark operating system', () => {
+    render(<App />);
+    expect(theme()).toBe('light');
+    expect(toggle()).toHaveAccessibleName('Switch to dark mode');
+    expect(toggle()).toHaveAttribute('aria-pressed', 'false');
+    expect(toggle()).toHaveTextContent('Dark');
+  });
+
+  it('renders dark when the operating system prefers dark', () => {
+    installMatchMedia(true);
+    render(<App />);
+    expect(theme()).toBe('dark');
+    expect(toggle()).toHaveAccessibleName('Switch to light mode');
+    expect(toggle()).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle()).toHaveTextContent('Light');
+  });
+
+  it('toggles the theme, updates the control and remembers the choice', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(toggle());
+    expect(theme()).toBe('dark');
+    expect(toggle()).toHaveAccessibleName('Switch to light mode');
+    expect(toggle()).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle()).toHaveTextContent('Light');
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
+
+    await user.click(toggle());
+    expect(theme()).toBe('light');
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
+  });
+
+  it('restores a saved choice over the operating system preference', () => {
+    installMatchMedia(true);
+    window.localStorage.setItem(THEME_STORAGE_KEY, 'light');
+    render(<App />);
+    expect(theme()).toBe('light');
+    expect(toggle()).toHaveAccessibleName('Switch to dark mode');
+  });
+
+  it('follows operating-system changes only until the user chooses', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect(theme()).toBe('light');
+    act(() => setSystemDark(true));
+    expect(theme()).toBe('dark');
+    act(() => setSystemDark(false));
+    expect(theme()).toBe('light');
+
+    await user.click(toggle());
+    expect(theme()).toBe('dark');
+    act(() => setSystemDark(false));
+    expect(theme()).toBe('dark');
+    act(() => setSystemDark(true));
+    expect(theme()).toBe('dark');
+  });
+
+  it('ignores a malformed saved value', () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, 'sepia');
+    render(<App />);
+    expect(theme()).toBe('light');
+  });
+
+  it('keeps every section usable after switching theme', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(toggle());
+    expect(theme()).toBe('dark');
+
+    await user.selectOptions(panel().getByLabelText('Root note'), 'A');
+    await user.click(screen.getByRole('button', { name: 'Generate chords' }));
+    expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /A major scale on the fretboard/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Chord finder' }));
+    await user.click(screen.getByRole('button', { name: 'C/B' }));
+    expect(screen.getByTestId('shape-code')).toHaveTextContent('x2x010');
+
+    await user.click(screen.getByRole('tab', { name: 'Learn triads' }));
+    expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Practise progressions' }));
+    expect(screen.getByRole('heading', { name: /in A major$/ })).toBeInTheDocument();
+
+    await user.click(toggle());
+    expect(theme()).toBe('light');
+    expect(screen.getByRole('heading', { name: /in A major$/ })).toBeInTheDocument();
+  });
+});
 
 describe('explore chords', () => {
   it('generates every chord type for the chosen root and shows its notes', async () => {

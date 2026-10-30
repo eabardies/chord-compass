@@ -40,7 +40,7 @@ export function ChordFinder() {
       />
 
       {lookup && lookup.status !== 'found' && (
-        <p className="chord-finder__error" role="alert">
+        <p className="error-message chord-finder__error" role="alert">
           <strong>{lookup.message}</strong> {lookup.suggestion}
         </p>
       )}
