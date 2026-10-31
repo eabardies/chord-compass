@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FretboardLabelMode } from './components/scaleFretboardModels';
 import { Tabs } from './components/Tabs';
 import { STANDARD_TUNING } from './domain/guitar';
 import { noteName } from './domain/music';
@@ -28,6 +29,8 @@ function AppShell() {
   const [tab, setTab] = useState<TabId>('explore');
   // The Learn triads selections live here so "Practise all … triads" in another tab can set them.
   const triads = useTriadLearningState();
+  // One dot-label preference for every fretboard, so a choice made in one tab holds in the next.
+  const [fretboardLabelMode, setFretboardLabelMode] = useState<FretboardLabelMode>('degrees');
   const tuningNotes = STANDARD_TUNING.strings.map(noteName).join(' ');
 
   const practiseTriads = (request: TriadPracticeRequest) => {
@@ -64,12 +67,27 @@ function AppShell() {
           value={tab}
           onChange={setTab}
           tabs={[
-            { id: 'explore', label: 'Explore chords', content: <ChordExplorer /> },
+            {
+              id: 'explore',
+              label: 'Explore chords',
+              content: (
+                <ChordExplorer
+                  fretboardLabelMode={fretboardLabelMode}
+                  onFretboardLabelModeChange={setFretboardLabelMode}
+                />
+              ),
+            },
             { id: 'finder', label: 'Chord finder', content: <ChordFinder /> },
             {
               id: 'keys',
               label: 'Chords in a key',
-              content: <KeyChords onPractiseTriads={practiseTriads} />,
+              content: (
+                <KeyChords
+                  onPractiseTriads={practiseTriads}
+                  fretboardLabelMode={fretboardLabelMode}
+                  onFretboardLabelModeChange={setFretboardLabelMode}
+                />
+              ),
             },
             { id: 'triads', label: 'Learn triads', content: <TriadLearning state={triads} /> },
             { id: 'practise', label: 'Practise progressions', content: <ProgressionPractice /> },

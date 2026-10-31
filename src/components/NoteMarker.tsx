@@ -19,6 +19,8 @@ interface NoteMarkerProps {
   sublabel?: string | undefined;
   /** Roots get an extra ring so they stand out without relying on colour. */
   isRoot: boolean;
+  /** The key root on a key fretboard: a heavy outline on top of any variant. */
+  keyRoot?: boolean | undefined;
   /** Open strings are drawn outlined instead of filled; shorthand for variant "outlined". */
   open?: boolean;
   variant?: NoteMarkerVariant;
@@ -37,6 +39,7 @@ export function NoteMarker({
   label,
   sublabel,
   isRoot,
+  keyRoot = false,
   open = false,
   variant,
   width,
@@ -55,11 +58,20 @@ export function NoteMarker({
   const dataAttributes = Object.fromEntries(
     Object.entries(data).map(([key, value]) => [`data-${key}`, String(value)]),
   );
+  const classes = [
+    'note-marker',
+    variantClass,
+    isRoot ? 'note-marker--root' : '',
+    keyRoot ? 'note-marker--key-root' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
     <g
-      className={`note-marker ${variantClass}${isRoot ? ' note-marker--root' : ''}`}
+      className={classes}
       data-tone={dataTone}
       data-label={label}
+      data-key-root={keyRoot ? 'true' : undefined}
       {...dataAttributes}
     >
       {isRoot && (

@@ -8,6 +8,7 @@
   flex-direction: column;
   gap: var(--space-3);
   min-width: 0;
+  color: var(--color-text-primary);
 }
 
 .scale-fretboard-section__header {
@@ -26,6 +27,12 @@
 .scale-fretboard-section__title {
   font-size: var(--font-size-lg);
   font-weight: 700;
+}
+
+.scale-fretboard-section__highlight-line {
+  margin-top: var(--space-1);
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .scale-fretboard-section__toggle {

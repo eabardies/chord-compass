@@ -5,6 +5,7 @@ import { MajorScaleReference } from '../../components/MajorScaleReference';
 import { NoteList } from '../../components/NoteList';
 import { ShapeViewer } from '../../components/ShapeViewer';
 import { ToggleButtons } from '../../components/ToggleButtons';
+import type { FretboardLabelMode } from '../../components/scaleFretboardModels';
 import { ScaleFretboardSection } from './ScaleFretboardSection';
 import {
   CHORD_ROOTS,
@@ -17,6 +18,12 @@ import { shapeNoteNames, shapesForChord, STANDARD_TUNING } from '../../domain/gu
 import { buildChord, intervalLabel, majorScaleReference, noteName } from '../../domain/music';
 import './ChordExplorer.css';
 
+interface ChordExplorerProps {
+  /** The fretboard dot-label preference, shared with the other fretboards in the app. */
+  fretboardLabelMode: FretboardLabelMode;
+  onFretboardLabelModeChange: (mode: FretboardLabelMode) => void;
+}
+
 const DEFAULT_ROOT_ID = 'A';
 const DEFAULT_TYPE_ID: ChordTypeId = 'major';
 
@@ -24,7 +31,10 @@ const DEFAULT_TYPE_ID: ChordTypeId = 'major';
  * Explore tab. State is three user selections (root in the picker, generated root, chord type)
  * plus the preferred shape; everything shown is derived from them during render.
  */
-export function ChordExplorer() {
+export function ChordExplorer({
+  fretboardLabelMode,
+  onFretboardLabelModeChange,
+}: ChordExplorerProps) {
   const [pickedRootId, setPickedRootId] = useState(DEFAULT_ROOT_ID);
   const [generatedRootId, setGeneratedRootId] = useState<string | null>(null);
   const [chordTypeId, setChordTypeId] = useState<string>(DEFAULT_TYPE_ID);
@@ -88,7 +98,11 @@ export function ChordExplorer() {
 
           <MajorScaleReference reference={majorScaleReference(chord)} />
 
-          <ScaleFretboardSection chord={chord} />
+          <ScaleFretboardSection
+            chord={chord}
+            labelMode={fretboardLabelMode}
+            onLabelModeChange={onFretboardLabelModeChange}
+          />
 
           <div className="panels">
             <Card title={chord.name} badge={selectedShape?.positionLabel}>

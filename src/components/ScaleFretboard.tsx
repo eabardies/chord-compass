@@ -141,6 +141,7 @@ export function ScaleFretboard({ model }: ScaleFretboardProps) {
           label={marker.label}
           isRoot={marker.tone === 'root'}
           variant={VARIANT[marker.tone]}
+          keyRoot={marker.isKeyRoot}
           dataTone={marker.tone}
         />
       ))}

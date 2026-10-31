@@ -558,6 +558,7 @@ describe('chords in a key', () => {
   const chordCards = () => within(screen.getByRole('group', { name: 'Chords in this key' }));
   const stringSets = () => within(screen.getByRole('group', { name: 'String set' }));
   const scaleTypes = () => within(screen.getByRole('group', { name: 'Scale type' }));
+  const dotLabels = () => within(screen.getByRole('group', { name: 'Fretboard dot labels' }));
   const cardTexts = () =>
     chordCards()
       .getAllByRole('button')
@@ -575,14 +576,28 @@ describe('chords in a key', () => {
       notes: panel().getByTestId(`${inversion}-notes`).textContent,
       frets: panel().getByTestId(`${inversion}-frets`).textContent,
     }));
-  const fretboard = () => screen.getByRole('img', { name: /on the fretboard/ });
-  const fretboardTones = (tone: string) => [
+  const fretboard = () => screen.getByRole('img', { name: /scale on the fretboard/ });
+  const fretboardTones = (tone: string) =>
+    [
+      ...new Set(
+        Array.from(fretboard().querySelectorAll(`.note-marker[data-tone="${tone}"]`)).map(
+          (marker) => marker.getAttribute('data-label'),
+        ),
+      ),
+    ].sort();
+  const keyRootLabels = () => [
     ...new Set(
-      Array.from(fretboard().querySelectorAll(`.note-marker[data-tone="${tone}"]`)).map((marker) =>
+      Array.from(fretboard().querySelectorAll('.note-marker[data-key-root="true"]')).map((marker) =>
         marker.getAttribute('data-label'),
       ),
     ),
   ];
+  const legend = () =>
+    within(screen.getByRole('list', { name: 'Fretboard legend' }))
+      .getAllByRole('listitem')
+      .map((item) => item.querySelector('span')?.textContent);
+  const fretboardToggle = () => screen.getByRole('button', { name: /fretboard$/ });
+  const highlight = () => screen.getByRole('button', { name: 'Highlight selected chord' });
 
   it('opens on C major with its notes, seven chords, the I chord and its triads', async () => {
     await openKeys();
@@ -617,10 +632,18 @@ describe('chords in a key', () => {
     expect(panel().getByTestId('key-chord-name')).toHaveTextContent('C major');
     expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('C (R) · E (3) · G (5)');
     expect(panel().getByTestId('key-chord-role')).toHaveTextContent('I in C major');
-    expect(fretboard()).toHaveAccessibleName('C major on the fretboard, C major highlighted');
-    expect(fretboardTones('root')).toEqual(['1/C']);
-    expect(fretboardTones('chord').sort()).toEqual(['3/E', '5/G']);
-    expect(fretboardTones('scale').sort()).toEqual(['2/D', '4/F', '6/A', '7/B']);
+    expect(screen.getByRole('heading', { name: 'C major on the fretboard' })).toBeInTheDocument();
+    expect(screen.getByText('C major highlighted')).toBeInTheDocument();
+    expect(fretboard()).toHaveAccessibleName('C major scale on the fretboard, C major highlighted');
+    expect(fretboardTones('root')).toEqual(['1']);
+    expect(fretboardTones('chord')).toEqual(['3', '5']);
+    expect(fretboardTones('scale')).toEqual(['2', '4', '6', '7']);
+    expect(legend()).toEqual([
+      'Key root',
+      'Selected chord root',
+      'Selected chord tone',
+      'Other scale note',
+    ]);
     expect(screen.getByRole('list', { name: 'Inversions of C major' })).toBeInTheDocument();
     expect(cards()).toEqual([
       { bass: 'C in the bass', notes: 'C → E → G', frets: '5–5–3' },
@@ -649,9 +672,14 @@ describe('chords in a key', () => {
     expect(panel().getByTestId('key-chord-name')).toHaveTextContent('D minor');
     expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('D (R) · F (♭3) · A (5)');
     expect(panel().getByTestId('key-chord-role')).toHaveTextContent('ii in C major');
-    expect(fretboard()).toHaveAccessibleName('C major on the fretboard, D minor highlighted');
-    expect(fretboardTones('root')).toEqual(['2/D']);
-    expect(fretboardTones('chord').sort()).toEqual(['4/F', '6/A']);
+    expect(screen.getByRole('heading', { name: 'C major on the fretboard' })).toBeInTheDocument();
+    expect(screen.getByText('D minor highlighted')).toBeInTheDocument();
+    expect(fretboard()).toHaveAccessibleName('C major scale on the fretboard, D minor highlighted');
+    // Fretboard dots keep the degrees of the key, not chord-tone roles.
+    expect(fretboardTones('root')).toEqual(['2']);
+    expect(fretboardTones('chord')).toEqual(['4', '6']);
+    expect(fretboardTones('scale')).toEqual(['1', '3', '5', '7']);
+    expect(keyRootLabels()).toEqual(['1']);
     expect(cards()).toEqual([
       { bass: 'D in the bass', notes: 'D → F → A', frets: '7–6–5' },
       { bass: 'F in the bass', notes: 'F → A → D', frets: '10–10–10' },
@@ -674,7 +702,7 @@ describe('chords in a key', () => {
     ).toEqual(expect.arrayContaining(['R', '♭3', '♭5']));
   });
 
-  it('changing the scale type updates the notes and every chord card, keeping the degree', async () => {
+  it('changing the scale type updates the notes, every chord card and the fretboard, keeping the degree', async () => {
     const user = await openKeys();
     await user.click(chordCards().getByRole('button', { name: /^Em, iii/ }));
 
@@ -700,6 +728,19 @@ describe('chords in a key', () => {
     ]);
     expect(panel().getByTestId('key-chord-name')).toHaveTextContent('E♭ major');
     expect(panel().getByTestId('key-chord-role')).toHaveTextContent('III in C natural minor');
+    expect(
+      screen.getByRole('heading', { name: 'C natural minor on the fretboard' }),
+    ).toBeInTheDocument();
+
+    await user.click(chordCards().getByRole('button', { name: /^Fm, iv/ }));
+    expect(screen.getByText('F minor highlighted')).toBeInTheDocument();
+    expect(fretboard()).toHaveAccessibleName(
+      'C natural minor scale on the fretboard, F minor highlighted',
+    );
+    expect(fretboardTones('root')).toEqual(['4']);
+    expect(fretboardTones('chord')).toEqual(['1', '♭6']);
+    expect(fretboardTones('scale')).toEqual(['2', '5', '♭3', '♭7']);
+    expect(keyRootLabels()).toEqual(['1']);
 
     await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
     expect(scaleTiles().map((tile) => tile.text)).toEqual([
@@ -720,6 +761,11 @@ describe('chords in a key', () => {
       'VIA♭Major',
       'vii°BdimDiminished',
     ]);
+    await user.click(chordCards().getByRole('button', { name: /^G, V/ }));
+    expect(fretboardTones('root')).toEqual(['5']);
+    expect(fretboardTones('chord')).toEqual(['2', '7']);
+
+    await user.click(chordCards().getByRole('button', { name: /^E♭aug, III\+/ }));
     expect(panel().getByTestId('key-chord-name')).toHaveTextContent('E♭ augmented');
     expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('E♭ (R) · G (3) · B (♯5)');
     expect(cards()).toEqual([
@@ -727,7 +773,8 @@ describe('chords in a key', () => {
       { bass: 'G in the bass', notes: 'G → B → E♭', frets: '12–12–11' },
       { bass: 'B in the bass', notes: 'B → E♭ → G', frets: '4–4–3' },
     ]);
-    expect(fretboardTones('chord').sort()).toEqual(['5/G', '7/B']);
+    expect(fretboardTones('root')).toEqual(['♭3']);
+    expect(fretboardTones('chord')).toEqual(['5', '7']);
 
     await user.click(scaleTypes().getByRole('button', { name: 'Melodic minor' }));
     expect(scaleTiles().map((tile) => tile.text)).toEqual([
@@ -748,6 +795,10 @@ describe('chords in a key', () => {
       'vi°AdimDiminished',
       'vii°BdimDiminished',
     ]);
+    expect(fretboard()).toHaveAccessibleName(
+      'C melodic minor scale on the fretboard, E♭ augmented highlighted',
+    );
+    expect(fretboardTones('scale')).toEqual(['1', '2', '4', '6']);
   });
 
   it('keeps the tonic sound when the scale type changes the spelling list', async () => {
@@ -767,6 +818,95 @@ describe('chords in a key', () => {
     expect(cardTexts()[6]).toBe('vii°F𝄪dimDiminished');
     await user.click(scaleTypes().getByRole('button', { name: 'Major' }));
     expect(panel().getByLabelText('Root note')).toHaveValue('Aflat');
+  });
+
+  it('switches fretboard dot labels and shares the choice with Explore chords', async () => {
+    const user = await openKeys();
+    await user.click(chordCards().getByRole('button', { name: /^Dm, ii/ }));
+    await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
+    expect(fretboardTones('root')).toEqual(['D']);
+    expect(fretboardTones('chord')).toEqual(['A', 'F']);
+    expect(fretboardTones('scale')).toEqual(['B', 'C', 'E', 'G']);
+    await user.click(dotLabels().getByRole('button', { name: 'Both' }));
+    expect(fretboardTones('root')).toEqual(['2/D']);
+    expect(fretboardTones('chord')).toEqual(['4/F', '6/A']);
+
+    await user.click(screen.getByRole('tab', { name: 'Explore chords' }));
+    await user.selectOptions(panel().getByLabelText('Root note'), 'A');
+    await user.click(screen.getByRole('button', { name: 'Generate chords' }));
+    expect(dotLabels().getByRole('button', { name: 'Both' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      Array.from(
+        screen
+          .getByRole('img', { name: /A major scale on the fretboard/ })
+          .querySelectorAll('.note-marker[data-tone="root"]'),
+      ).map((marker) => marker.getAttribute('data-label')),
+    ).toContain('1/A');
+    await user.click(dotLabels().getByRole('button', { name: 'Degrees' }));
+
+    await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
+    expect(dotLabels().getByRole('button', { name: 'Degrees' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(fretboardTones('root')).toEqual(['2']);
+  });
+
+  it('toggles chord highlighting locally and keeps the preference across chord changes', async () => {
+    const user = await openKeys();
+    await user.click(chordCards().getByRole('button', { name: /^Dm, ii/ }));
+    expect(highlight()).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(highlight());
+    expect(highlight()).toHaveAttribute('aria-pressed', 'false');
+    expect(fretboard()).toHaveAccessibleName('C major scale on the fretboard');
+    expect(fretboardTones('root')).toEqual([]);
+    expect(fretboardTones('chord')).toEqual([]);
+    expect(fretboardTones('scale')).toEqual(['1', '2', '3', '4', '5', '6', '7']);
+    expect(keyRootLabels()).toEqual(['1']);
+    expect(legend()).toEqual(['Key root', 'Other scale note']);
+    expect(screen.queryByText('D minor highlighted')).toBeNull();
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('D minor');
+
+    await user.click(chordCards().getByRole('button', { name: /^G, V/ }));
+    expect(highlight()).toHaveAttribute('aria-pressed', 'false');
+    await user.click(highlight());
+    expect(fretboardTones('root')).toEqual(['5']);
+    expect(fretboardTones('chord')).toEqual(['2', '7']);
+  });
+
+  it('hides and shows its fretboard without touching the Explore chords fretboard', async () => {
+    const user = await openKeys();
+    await user.click(chordCards().getByRole('button', { name: /^Am, vi/ }));
+    expect(fretboardToggle()).toHaveTextContent('Hide fretboard');
+    expect(fretboardToggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(fretboardToggle()).toHaveAttribute('aria-controls', 'key-fretboard-panel');
+
+    await user.click(fretboardToggle());
+    expect(fretboardToggle()).toHaveTextContent('Show fretboard');
+    expect(fretboardToggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('img', { name: /scale on the fretboard/ })).toBeNull();
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('A minor');
+
+    await user.click(screen.getByRole('tab', { name: 'Explore chords' }));
+    await user.selectOptions(panel().getByLabelText('Root note'), 'A');
+    await user.click(screen.getByRole('button', { name: 'Generate chords' }));
+    expect(fretboardToggle()).toHaveTextContent('Hide fretboard');
+    expect(fretboardToggle()).toHaveAttribute('aria-controls', 'explore-fretboard-panel');
+    expect(screen.getByRole('img', { name: /A major scale on the fretboard/ })).toBeInTheDocument();
+    await user.click(fretboardToggle());
+    expect(fretboardToggle()).toHaveTextContent('Show fretboard');
+
+    await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
+    expect(fretboardToggle()).toHaveTextContent('Show fretboard');
+    await user.click(fretboardToggle());
+    expect(fretboard()).toHaveAccessibleName('C major scale on the fretboard, A minor highlighted');
+
+    await user.click(screen.getByRole('tab', { name: 'Explore chords' }));
+    expect(fretboardToggle()).toHaveTextContent('Show fretboard');
   });
 
   it('keeps the chosen chord when the string set changes, and the string set when the chord changes', async () => {
@@ -841,6 +981,8 @@ describe('chords in a key', () => {
     await user.click(chordCards().getByRole('button', { name: /vii°, E♯ diminished/ }));
     expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('E♯ (R) · G♯ (♭3) · B (♭5)');
     expect(cards()[0].notes).toBe('E♯ → G♯ → B');
+    await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
+    expect(fretboardTones('root')).toEqual(['E♯']);
 
     await user.click(screen.getByRole('button', { name: 'Practise all E♯ diminished triads' }));
     expect(screen.getByRole('tab', { name: 'Learn triads' })).toHaveAttribute(

@@ -1,7 +1,12 @@
 import { useState } from 'react';
+import { FretboardSection } from '../../components/FretboardSection';
 import { LabeledSelect } from '../../components/LabeledSelect';
 import { NoteList } from '../../components/NoteList';
-import { ScaleFretboard } from '../../components/ScaleFretboard';
+import type {
+  FretboardLabelMode,
+  FretboardLegendEntry,
+  ScaleFretboardPreferences,
+} from '../../components/scaleFretboardModels';
 import { ToggleButtons } from '../../components/ToggleButtons';
 import { StringSetSelector } from '../../components/triads/StringSetSelector';
 import { TriadInversionGrid } from '../../components/triads/TriadInversionGrid';
@@ -37,7 +42,6 @@ import {
 } from '../../domain/music';
 import { DiatonicChordCards } from './DiatonicChordCards';
 import { buildKeyFretboardModel } from './keyFretboardViewModel';
-import { FretboardLegend } from '../chord-explorer/FretboardLegend';
 import './KeyChords.css';
 
 export interface TriadPracticeRequest {
@@ -49,6 +53,9 @@ export interface TriadPracticeRequest {
 interface KeyChordsProps {
   /** "Practise all … triads": the app shell opens Learn triads with this request. */
   onPractiseTriads: (request: TriadPracticeRequest) => void;
+  /** The fretboard dot-label preference, shared with the other fretboards in the app. */
+  fretboardLabelMode: FretboardLabelMode;
+  onFretboardLabelModeChange: (mode: FretboardLabelMode) => void;
 }
 
 const DEFAULT_TONIC_ID = 'C';
@@ -59,7 +66,11 @@ const DEFAULT_TONIC_ID = 'C';
  * during render. The degree is kept across scale changes (ii stays ii), so the user can
  * compare the same degree in different scales.
  */
-export function KeyChords({ onPractiseTriads }: KeyChordsProps) {
+export function KeyChords({
+  onPractiseTriads,
+  fretboardLabelMode,
+  onFretboardLabelModeChange,
+}: KeyChordsProps) {
   const [tonicId, setTonicId] = useState(DEFAULT_TONIC_ID);
   const [scaleType, setScaleType] = useState<ScaleType>('major');
   const [degree, setDegree] = useState(1);
@@ -81,7 +92,6 @@ export function KeyChords({ onPractiseTriads }: KeyChordsProps) {
   const chordToneByName = new Map(triad.tones.map((tone) => [noteName(tone.note), tone]));
   const stringSet = stringSetById(stringSetId) ?? TRIAD_STRING_SETS[0];
   const voicings = triadVoicings(triad, stringSet, tuning);
-  const fretboard = buildKeyFretboardModel(scale, triad, tuning, FRETBOARD_MAX_FRET);
   const toneSummary = triadNoteNames(triad.tones).join(' · ');
   const announcement = `${triad.name}, ${selected.diatonic.numeral} in ${name}: ${toneSummary}. Triad shapes on strings ${stringSet.numbers}.`;
 
@@ -91,6 +101,38 @@ export function KeyChords({ onPractiseTriads }: KeyChordsProps) {
     const nextTonics = KEY_TONICS[isMinorScale(next) ? 'minor' : 'major'];
     setTonicId(closestRootOption(nextTonics, tonic.note).id);
   };
+
+  const buildFretboard = (preferences: ScaleFretboardPreferences) =>
+    buildKeyFretboardModel(scale, triad, preferences, tuning, FRETBOARD_MAX_FRET);
+
+  // Legend samples use the key's own degree labels, so they match what the dots print.
+  const degreeOf = (noteText: string) =>
+    degreeLabels[notes.findIndex((note) => noteName(note) === noteText)] ?? '1';
+  const chordRootDegree = degreeOf(noteName(triad.root));
+  const chordToneDegree = degreeOf(noteName(triad.tones[1].note));
+  const otherDegree =
+    degreeLabels.find((_, index) => index > 0 && !chordToneByName.has(noteName(notes[index]))) ??
+    '2';
+  const fretboardLegend = (preferences: ScaleFretboardPreferences): FretboardLegendEntry[] => [
+    { key: 'key-root', label: 'Key root', tone: 'scale', sample: '1', isKeyRoot: true },
+    ...(preferences.highlightChord
+      ? ([
+          {
+            key: 'chord-root',
+            label: 'Selected chord root',
+            tone: 'root',
+            sample: chordRootDegree,
+          },
+          {
+            key: 'chord',
+            label: 'Selected chord tone',
+            tone: 'chord',
+            sample: chordToneDegree,
+          },
+        ] as const)
+      : []),
+    { key: 'scale', label: 'Other scale note', tone: 'scale', sample: otherDegree },
+  ];
 
   return (
     <div className="key-chords">
@@ -175,18 +217,15 @@ export function KeyChords({ onPractiseTriads }: KeyChordsProps) {
           </div>
         </section>
 
-        <section className="key-chords__panel" aria-labelledby="key-fretboard-heading">
-          <h3 id="key-fretboard-heading" className="key-chords__heading">
-            {name} on the fretboard
-          </h3>
-          <p className="section-subtitle">
-            High e at the top · low E at the bottom · {triad.name} highlighted
-          </p>
-          <div className="key-chords__scroller" tabIndex={0}>
-            <ScaleFretboard model={fretboard} />
-          </div>
-          <FretboardLegend showChordTones showAltered={false} />
-        </section>
+        <FretboardSection
+          id="key-fretboard"
+          title={`${name} on the fretboard`}
+          highlightLine={`${triad.name} highlighted`}
+          labelMode={fretboardLabelMode}
+          onLabelModeChange={onFretboardLabelModeChange}
+          buildModel={buildFretboard}
+          legend={fretboardLegend}
+        />
 
         <section className="key-chords__panel" aria-labelledby="triad-shapes-heading">
           <header className="key-chords__shapes-header">

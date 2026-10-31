@@ -62,7 +62,8 @@ src/
     key-chords/            "Chords in a key" tab: scale type, diatonic chord cards, key fretboard
     triad-learning/        "Learn triads" tab: controls, summary, fretboard section
     progression-practice/ "Practise progressions" tab: state and orchestration
-  components/       reusable presentation: ChordDiagram, ScaleFretboard, Tabs, ...
+  components/       reusable presentation: ChordDiagram, FretboardSection (the one scale
+                    fretboard with show/hide, dot labels, highlight and legend), Tabs, ...
     triads/         shared triad UI: TriadDiagram, TriadFretboard, TriadInversionCard,
                     StringSetSelector and the view models that feed them
   styles/           design tokens (explicit light and dark themes) and base styles
@@ -178,10 +179,13 @@ tone on top of it.
 - **Where it is computed**: `buildFretboardMap` in `domain/guitar/fretboardMap.ts` turns
   open-string note + fret into a pitch class, then into scale degree, chord degree and spelled
   note for every position. `features/chord-explorer/scaleFretboardViewModel.ts` turns those
-  into marker labels and styles; `components/ScaleFretboard.tsx` only draws. To support
-  another tuning, pass a different `GuitarTuning`; to show another scale, replace the
-  `scaleNotes({ mode: 'major' })` call with the scale's notes. No alternate-tuning or mode
-  controls are exposed yet.
+  into marker labels and styles; `components/ScaleFretboard.tsx` only draws, and
+  `components/FretboardSection.tsx` wraps it with the title, show/hide, dot labels, highlight
+  toggle and legend. "Chords in a key" reuses that section with its own model builder
+  (`features/key-chords/keyFretboardViewModel.ts`), which maps the key's own scale and marks
+  the key root with a heavy outline. The dot-label choice is shared between the two tabs;
+  show/hide and the highlight toggle are local to each. To support another tuning, pass a
+  different `GuitarTuning`.
 
 ## Chord finder
 
@@ -263,7 +267,8 @@ Each step is shown explicitly: chord formula → chord notes → inversion order
   scale is spelled by degree, so F♯ major has an E♯ and G♯ harmonic minor an F𝄪. Its seven
   triads come from `harmonizeScale` (stack thirds, classify by sounding intervals; no table of
   qualities per scale). Picking a chord card highlights its tones in the scale list and on a
-  fretboard of the key's own scale, shows a selected-chord summary ("ii in C major") and the
+  fretboard of the key's own scale (the shared `FretboardSection`, dots labelled with degrees of
+  the key and the key root outlined), shows a selected-chord summary ("ii in C major") and the
   three inversions with the same diagrams and string-set control; "Practise all … triads" opens
   Learn triads with that root, quality and string set (the Learn triads selections live in the
   app shell for this reason). Progressions still use `Key` with `Mode` major/minor, which

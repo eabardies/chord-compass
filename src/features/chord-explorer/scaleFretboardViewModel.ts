@@ -1,5 +1,7 @@
 import type {
+  FretboardLabelMode,
   ScaleFretboardModel,
+  ScaleFretboardPreferences,
   ScaleFretboardStringModel,
   ScaleMarkerModel,
   ScaleMarkerTone,
@@ -12,19 +14,9 @@ import {
 } from '../../domain/guitar';
 import { intervalLabel, noteName, type Chord } from '../../domain/music';
 
-/** What the markers print: the degree, the note name, or "degree/note". */
-export type FretboardLabelMode = 'degrees' | 'notes' | 'both';
-
-export const FRETBOARD_LABEL_MODES: readonly { id: FretboardLabelMode; label: string }[] = [
-  { id: 'degrees', label: 'Degrees' },
-  { id: 'notes', label: 'Notes' },
-  { id: 'both', label: 'Both' },
-];
-
-export interface ScaleFretboardPreferences {
-  readonly labelMode: FretboardLabelMode;
-  readonly highlightChord: boolean;
-}
+// The label mode and preferences are the shared fretboard contract; re-exported for callers.
+export { FRETBOARD_LABEL_MODES } from '../../components/scaleFretboardModels';
+export type { FretboardLabelMode, ScaleFretboardPreferences };
 
 const STRING_NAMES: Record<number, string> = {
   6: 'low E',

@@ -119,17 +119,6 @@
   color: var(--color-text-primary);
 }
 
-/* The fretboard keeps a readable size and scrolls sideways on narrow screens. */
-.key-chords__scroller {
-  overflow-x: auto;
-  padding-bottom: var(--space-2);
-  border-radius: var(--radius-sm);
-}
-
-.key-chords__scroller:focus-visible {
-  box-shadow: var(--focus-ring);
-}
-
 .key-chords__shapes-header {
   display: flex;
   flex-wrap: wrap;

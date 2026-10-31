@@ -68,3 +68,10 @@
 .note-marker--altered .note-marker__sublabel {
   fill: var(--color-altered-tone-text);
 }
+
+/* Key root: a heavy outline in the text colour, on top of whichever variant the marker has. */
+.note-marker--key-root .note-marker__pill {
+  stroke: var(--color-text-primary);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
