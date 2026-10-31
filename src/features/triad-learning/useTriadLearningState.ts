@@ -4,11 +4,14 @@ import type { TriadQuality } from '../../domain/music';
 import type { MarkerLabelMode } from '../../components/triads/markerLabels';
 
 /**
- * The four user selections of the Learn triads tab. Everything shown (formula, notes,
- * inversions, frets) is derived from these during render; nothing derived is stored.
+ * The user selections of the Learn triads tab. `pickedRootId` is what the root picker shows;
+ * `rootId` is the root whose triads are on screen, `null` until the user presses "Show triads"
+ * (or another tab sends a chord here). Everything shown (formula, notes, inversions, frets) is
+ * derived from these during render; nothing derived is stored.
  */
 export interface TriadLearningSelections {
-  readonly rootId: string;
+  readonly pickedRootId: string;
+  readonly rootId: string | null;
   readonly quality: TriadQuality;
   readonly stringSetId: StringSetId;
   readonly labelMode: MarkerLabelMode;
@@ -22,7 +25,8 @@ export interface TriadPracticeRequest {
 }
 
 export const DEFAULT_TRIAD_SELECTIONS: TriadLearningSelections = {
-  rootId: 'A',
+  pickedRootId: 'A',
+  rootId: null,
   quality: 'major',
   stringSetId: 'strings-1-2-3',
   labelMode: 'both',
@@ -39,12 +43,15 @@ export function useTriadLearningState(initial = DEFAULT_TRIAD_SELECTIONS) {
 
   return {
     selections,
-    setRootId: (rootId: string) => update('rootId', rootId),
+    setPickedRootId: (pickedRootId: string) => update('pickedRootId', pickedRootId),
+    /** "Show triads": the picked root becomes the shown root. */
+    showPickedRoot: () =>
+      setSelections((current) => ({ ...current, rootId: current.pickedRootId })),
     setQuality: (quality: TriadQuality) => update('quality', quality),
     setStringSetId: (stringSetId: StringSetId) => update('stringSetId', stringSetId),
     setLabelMode: (labelMode: MarkerLabelMode) => update('labelMode', labelMode),
     /** Switch the tab to a chord sent from elsewhere, keeping the label preference. */
     practise: (request: TriadPracticeRequest) =>
-      setSelections((current) => ({ ...current, ...request })),
+      setSelections((current) => ({ ...current, ...request, pickedRootId: request.rootId })),
   };
 }

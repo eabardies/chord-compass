@@ -95,7 +95,13 @@ Key ideas:
 - **Curated shapes vs. generated triad voicings.** Six-string chord shapes are hand-verified
   data. Triad inversions are derived instead: three strings, one chord tone per string, and the
   most compact fret for each (see "Learn triads" below). Tabs keep their panels mounted, so each
-  feature keeps its selections when you switch tabs.
+  feature keeps its selections when you switch tabs. Every tab opens empty with A preselected
+  and shows content after one action ("Generate chords", "Find chord", "Show chords in this
+  key", "Show triads", choosing a progression), so the first thing on screen is always
+  something the user asked for. Every tab opens empty with A
+  preselected and shows content after one action ("Generate chords", "Find chord", "Show chords
+  in this key", "Show triads", choosing a progression), so the first thing on screen is always
+  something the user asked for.
 - **Musical validation vs. human verification.** Validation proves the notes are right.
   `playability: 'verified'` records that a person confirmed the fingering is comfortable;
   unverified fingerings render without finger numbers and say so.

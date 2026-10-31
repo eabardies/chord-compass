@@ -1,3 +1,4 @@
+import { LabeledSelect } from '../../components/LabeledSelect';
 import { TriadInversionGrid } from '../../components/triads/TriadInversionGrid';
 import { fretboardModel } from '../../components/triads/triadViewModels';
 import { CHORD_ROOTS, chordTypeForTriad, rootOptionById } from '../../data';
@@ -21,19 +22,23 @@ interface TriadLearningProps {
 }
 
 /**
- * Learn triads tab. State is four selections (root, quality, string set, label mode); the
- * triad, its inversions and every fret position are derived during render.
+ * Learn triads tab. Like Explore chords, it opens empty: the user picks a root and presses
+ * "Show triads", after which quality, string set and label mode are live controls. The triad,
+ * its inversions and every fret position are derived during render.
  */
 export function TriadLearning({ state }: TriadLearningProps) {
-  const { selections, setRootId, setQuality, setStringSetId, setLabelMode } = state;
+  const { selections, setPickedRootId, showPickedRoot, setQuality, setStringSetId, setLabelMode } =
+    state;
   const tuning = STANDARD_TUNING;
 
-  const root = rootOptionById(CHORD_ROOTS, selections.rootId) ?? CHORD_ROOTS[0];
+  const root = selections.rootId === null ? null : rootOptionById(CHORD_ROOTS, selections.rootId);
   const stringSet = stringSetById(selections.stringSetId) ?? TRIAD_STRING_SETS[0];
-  const triad = buildTriad(root.note, chordTypeForTriad(selections.quality));
-  const voicings = triadVoicings(triad, stringSet, tuning);
+  const triad = root ? buildTriad(root.note, chordTypeForTriad(selections.quality)) : null;
+  const voicings = triad ? triadVoicings(triad, stringSet, tuning) : [];
   const stringSetLowToHigh = describeStringSet(stringSet, tuning);
-  const announcement = `${triad.name}, ${triadNoteNames(triad.tones).join(' ')}, on ${stringSet.name.toLowerCase()}.`;
+  const announcement = triad
+    ? `${triad.name}, ${triadNoteNames(triad.tones).join(' ')}, on ${stringSet.name.toLowerCase()}.`
+    : '';
 
   return (
     <div className="triad-learning">
@@ -44,27 +49,54 @@ export function TriadLearning({ state }: TriadLearningProps) {
         </p>
       </div>
 
-      <TriadControls
-        selections={selections}
-        onRootChange={setRootId}
-        onQualityChange={setQuality}
-        onStringSetChange={setStringSetId}
-        onLabelModeChange={setLabelMode}
-      />
+      <form
+        className="controls"
+        onSubmit={(event) => {
+          event.preventDefault();
+          showPickedRoot();
+        }}
+      >
+        <LabeledSelect
+          id="triad-root"
+          label="Root note"
+          value={selections.pickedRootId}
+          options={CHORD_ROOTS}
+          onChange={setPickedRootId}
+        />
+        <button type="submit" className="button">
+          Show triads
+        </button>
+      </form>
 
       <p className="visually-hidden" aria-live="polite" aria-atomic="true">
         {announcement}
       </p>
 
-      <div className="stack">
-        <TriadSummary triad={triad} />
-        <TriadInversionGrid voicings={voicings} labelMode={selections.labelMode} tuning={tuning} />
-        <TriadFretboardSection
-          model={fretboardModel(voicings, selections.labelMode, tuning)}
-          stringSetName={stringSet.name}
-          stringSetLowToHigh={stringSetLowToHigh}
-        />
-      </div>
+      {!triad && (
+        <p className="empty-state">Pick a root note and show its triads to get started.</p>
+      )}
+
+      {triad && (
+        <div className="stack">
+          <TriadControls
+            selections={selections}
+            onQualityChange={setQuality}
+            onStringSetChange={setStringSetId}
+            onLabelModeChange={setLabelMode}
+          />
+          <TriadSummary triad={triad} />
+          <TriadInversionGrid
+            voicings={voicings}
+            labelMode={selections.labelMode}
+            tuning={tuning}
+          />
+          <TriadFretboardSection
+            model={fretboardModel(voicings, selections.labelMode, tuning)}
+            stringSetName={stringSet.name}
+            stringSetLowToHigh={stringSetLowToHigh}
+          />
+        </div>
+      )}
     </div>
   );
 }

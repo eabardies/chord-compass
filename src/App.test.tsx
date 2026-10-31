@@ -99,9 +99,11 @@ describe('theme', () => {
     expect(screen.getByTestId('shape-code')).toHaveTextContent('x2x010');
 
     await user.click(screen.getByRole('tab', { name: 'Learn triads' }));
+    await user.click(screen.getByRole('button', { name: 'Show triads' }));
     expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Practise progressions' }));
+    await user.click(screen.getByRole('button', { name: 'I–IV–V' }));
     expect(screen.getByRole('heading', { name: /in A major$/ })).toBeInTheDocument();
 
     await user.click(toggle());
@@ -332,6 +334,7 @@ describe('learn triads', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('tab', { name: 'Learn triads' }));
+    await user.click(showTriads());
     return user;
   }
 
@@ -355,9 +358,34 @@ describe('learn triads', () => {
       .sort((a, b) => Number(b.getAttribute('data-string')) - Number(a.getAttribute('data-string')))
       .map((marker) => marker.querySelector('.note-marker__sublabel')?.textContent ?? null);
 
+  const showTriads = () => screen.getByRole('button', { name: 'Show triads' });
+
   const fretboard = () => screen.getByRole('img', { name: /across the fretboard/ });
 
-  it('opens on A major with the formula, notes, three inversions and the fretboard', async () => {
+  it('opens empty with A picked, and shows the triads on request', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: 'Learn triads' }));
+    expect(panel().getByLabelText('Root note')).toHaveValue('A');
+    expect(
+      panel().getByText('Pick a root note and show its triads to get started.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'A major' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Triad quality' })).toBeNull();
+    expect(screen.queryByRole('list', { name: 'Inversions' })).toBeNull();
+
+    await user.click(showTriads());
+    expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
+    expect(panel().queryByText(/get started/)).toBeNull();
+
+    // Changing the picker alone changes nothing; Show triads does.
+    await user.selectOptions(panel().getByLabelText('Root note'), 'C');
+    expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
+    await user.click(showTriads());
+    expect(screen.getByRole('heading', { name: 'C major' })).toBeInTheDocument();
+  });
+
+  it('shows A major with the formula, notes, three inversions and the fretboard', async () => {
     await openTriads();
     expect(screen.getByRole('tab', { name: 'Learn triads' })).toHaveAttribute(
       'aria-selected',
@@ -404,6 +432,7 @@ describe('learn triads', () => {
   it('updates every card and the fretboard when the root changes', async () => {
     const user = await openTriads();
     await user.selectOptions(panel().getByLabelText('Root note'), 'C');
+    await user.click(showTriads());
     expect(screen.getByRole('heading', { name: 'C major' })).toBeInTheDocument();
     expect(panel().getByTestId('triad-notes')).toHaveTextContent('C–E–G');
     expect(cards()).toEqual([
@@ -434,6 +463,7 @@ describe('learn triads', () => {
     ]);
 
     await user.selectOptions(panel().getByLabelText('Root note'), 'B');
+    await user.click(showTriads());
     await user.click(screen.getByRole('button', { name: 'Diminished' }));
     expect(screen.getByRole('heading', { name: 'B diminished' })).toBeInTheDocument();
     expect(cards()[0]).toEqual({
@@ -444,6 +474,7 @@ describe('learn triads', () => {
     });
 
     await user.selectOptions(panel().getByLabelText('Root note'), 'Eflat');
+    await user.click(showTriads());
     await user.click(screen.getByRole('button', { name: 'Augmented' }));
     expect(screen.getByRole('heading', { name: 'E♭ augmented' })).toBeInTheDocument();
     expect(cards()).toEqual([
@@ -524,6 +555,7 @@ describe('learn triads', () => {
   it('keeps its selections, and the other tabs theirs, when switching tabs', async () => {
     const user = await openTriads();
     await user.selectOptions(panel().getByLabelText('Root note'), 'Eflat');
+    await user.click(showTriads());
     await user.click(screen.getByRole('button', { name: 'Minor' }));
     await user.click(screen.getByRole('button', { name: /^2–3–4/ }));
     await user.click(screen.getByRole('button', { name: 'Notes' }));
@@ -552,7 +584,13 @@ describe('chords in a key', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
+    await showKey(user, 'C');
     return user;
+  }
+
+  async function showKey(user: ReturnType<typeof userEvent.setup>, rootId: string) {
+    await user.selectOptions(panel().getByLabelText('Root note'), rootId);
+    await user.click(screen.getByRole('button', { name: 'Show chords in this key' }));
   }
 
   const chordCards = () => within(screen.getByRole('group', { name: 'Chords in this key' }));
@@ -599,7 +637,48 @@ describe('chords in a key', () => {
   const fretboardToggle = () => screen.getByRole('button', { name: /fretboard$/ });
   const highlight = () => screen.getByRole('button', { name: 'Highlight selected chord' });
 
-  it('opens on C major with its notes, seven chords, the I chord and its triads', async () => {
+  it('opens empty with A picked, and shows the key on request', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
+    expect(panel().getByLabelText('Root note')).toHaveValue('A');
+    expect(
+      panel().getByText('Pick a root note and show the chords in its key to get started.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Chords in this key' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Scale type' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: /^Notes in / })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Show chords in this key' }));
+    expect(screen.getByRole('heading', { name: 'Notes in A major' })).toBeInTheDocument();
+    expect(scaleTiles().map((tile) => tile.text)).toEqual([
+      'A1',
+      'B2',
+      'C♯3',
+      'D4',
+      'E5',
+      'F♯6',
+      'G♯7',
+    ]);
+    expect(cardTexts()).toEqual([
+      'IAMajor',
+      'iiBmMinor',
+      'iiiC♯mMinor',
+      'IVDMajor',
+      'VEMajor',
+      'viF♯mMinor',
+      'vii°G♯dimDiminished',
+    ]);
+    expect(panel().queryByText(/get started/)).toBeNull();
+
+    // Changing the picker alone changes nothing; the button does.
+    await user.selectOptions(panel().getByLabelText('Root note'), 'D');
+    expect(screen.getByRole('heading', { name: 'Notes in A major' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Show chords in this key' }));
+    expect(screen.getByRole('heading', { name: 'Notes in D major' })).toBeInTheDocument();
+  });
+
+  it('shows C major with its notes, seven chords, the I chord and its triads', async () => {
     await openKeys();
     expect(panel().getByLabelText('Root note')).toHaveValue('C');
     expect(scaleTypes().getByRole('button', { name: 'Major' })).toHaveAttribute(
@@ -949,7 +1028,7 @@ describe('chords in a key', () => {
 
   it('spells sharp-key chords as the key does and still finds a root to practise', async () => {
     const user = await openKeys();
-    await user.selectOptions(panel().getByLabelText('Root note'), 'Fsharp');
+    await showKey(user, 'Fsharp');
     expect(scaleTiles().map((tile) => tile.text)).toEqual([
       'F♯1',
       'G♯2',
@@ -980,6 +1059,11 @@ describe('chords in a key: every root, spelled as chosen', () => {
     render(<App />);
     await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
     return user;
+  }
+
+  async function showKey(user: ReturnType<typeof userEvent.setup>, rootId: string) {
+    await user.selectOptions(rootSelect(), rootId);
+    await user.click(screen.getByRole('button', { name: 'Show chords in this key' }));
   }
 
   const rootSelect = () => panel().getByLabelText('Root note') as HTMLSelectElement;
@@ -1047,7 +1131,7 @@ describe('chords in a key: every root, spelled as chosen', () => {
 
   it('C♯ major keeps E♯ and B♯ in the scale, the chords, the fretboard and the triads', async () => {
     const user = await openKeys();
-    await user.selectOptions(rootSelect(), 'Csharp');
+    await showKey(user, 'Csharp');
     expect(rootSelect()).toHaveValue('Csharp');
     expect(screen.getByRole('heading', { name: 'Notes in C♯ major' })).toBeInTheDocument();
     expect(scaleTiles()).toEqual(['C♯1', 'D♯2', 'E♯3', 'F♯4', 'G♯5', 'A♯6', 'B♯7']);
@@ -1096,7 +1180,7 @@ describe('chords in a key: every root, spelled as chosen', () => {
 
   it('C♯ harmonic minor spells its vii° as B♯ diminished with B♯, D♯, F♯', async () => {
     const user = await openKeys();
-    await user.selectOptions(rootSelect(), 'Csharp');
+    await showKey(user, 'Csharp');
     await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
     expect(rootSelect()).toHaveValue('Csharp');
     expect(scaleTiles()).toEqual(['C♯1', 'D♯2', 'E♭3', 'F♯4', 'G♯5', 'A♭6', 'B♯7']);
@@ -1141,7 +1225,7 @@ describe('chords in a key: every root, spelled as chosen', () => {
 
   it('D♯ and A♯ major keep their double sharps and only mention the common spelling', async () => {
     const user = await openKeys();
-    await user.selectOptions(rootSelect(), 'Dsharp');
+    await showKey(user, 'Dsharp');
     expect(rootSelect()).toHaveValue('Dsharp');
     expect(scaleTiles()).toEqual(['D♯1', 'E♯2', 'F𝄪3', 'G♯4', 'A♯5', 'B♯6', 'C𝄪7']);
     expect(cardTexts()).toEqual([
@@ -1164,12 +1248,12 @@ describe('chords in a key: every root, spelled as chosen', () => {
     expect(fretboardTones('chord')).toEqual(['A♯', 'C𝄪']);
     expect(rootSelect()).toHaveValue('Dsharp');
 
-    await user.selectOptions(rootSelect(), 'Asharp');
+    await showKey(user, 'Asharp');
     expect(scaleTiles()).toEqual(['A♯1', 'B♯2', 'C𝄪3', 'D♯4', 'E♯5', 'F𝄪6', 'G𝄪7']);
     expect(cardTexts()[6]).toBe('vii°G𝄪dimDiminished');
     expect(panel().getByTestId('enharmonic-note')).toHaveTextContent('B♭ major is its more');
 
-    await user.selectOptions(rootSelect(), 'Gsharp');
+    await showKey(user, 'Gsharp');
     await user.click(scaleTypes().getByRole('button', { name: 'Natural minor' }));
     expect(scaleTiles()).toEqual(['G♯1', 'A♯2', 'B♭3', 'C♯4', 'D♯5', 'E♭6', 'F♯♭7']);
     expect(cardTexts()).toEqual([
@@ -1186,7 +1270,7 @@ describe('chords in a key: every root, spelled as chosen', () => {
 
   it('keeps a flat spelling when the scale type changes, using double flats where needed', async () => {
     const user = await openKeys();
-    await user.selectOptions(rootSelect(), 'Dflat');
+    await showKey(user, 'Dflat');
     await user.click(scaleTypes().getByRole('button', { name: 'Natural minor' }));
     expect(rootSelect()).toHaveValue('Dflat');
     expect(screen.getByRole('heading', { name: 'Notes in D♭ natural minor' })).toBeInTheDocument();
@@ -1196,13 +1280,13 @@ describe('chords in a key: every root, spelled as chosen', () => {
     );
     expect(cardTexts()[5]).toBe('VIB𝄫Major');
 
-    await user.selectOptions(rootSelect(), 'Gflat');
+    await showKey(user, 'Gflat');
     await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
     expect(scaleTiles()).toEqual(['G♭1', 'A♭2', 'B𝄫♭3', 'C♭4', 'D♭5', 'E𝄫♭6', 'F7']);
     await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
     expect(fretboardTones('scale')).toEqual(['A♭', 'C♭', 'E𝄫', 'F']);
 
-    await user.selectOptions(rootSelect(), 'Eflat');
+    await showKey(user, 'Eflat');
     await user.click(scaleTypes().getByRole('button', { name: 'Major' }));
     expect(rootSelect()).toHaveValue('Eflat');
     expect(scaleTiles()[0]).toBe('E♭1');
@@ -1210,7 +1294,7 @@ describe('chords in a key: every root, spelled as chosen', () => {
 
   it('sends a sharp root to Learn triads with its spelling intact', async () => {
     const user = await openKeys();
-    await user.selectOptions(rootSelect(), 'Csharp');
+    await showKey(user, 'Csharp');
     await user.click(chordCards().getByRole('button', { name: /^G♯, V/ }));
     await user.click(screen.getByRole('button', { name: 'Practise all G♯ major triads' }));
     expect(screen.getByRole('tab', { name: 'Learn triads' })).toHaveAttribute(
@@ -1383,6 +1467,7 @@ describe('chord finder', () => {
     expect(shapeCode()).toBe('7x555x');
 
     await user.click(screen.getByRole('tab', { name: 'Learn triads' }));
+    await user.click(screen.getByRole('button', { name: 'Show triads' }));
     expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
     await user.click(screen.getByRole('tab', { name: 'Chord finder' }));
     expect(input()).toHaveValue('C/B');
@@ -1393,6 +1478,27 @@ describe('chord finder', () => {
 });
 
 describe('practise progressions', () => {
+  it('opens empty with A picked, and shows a progression once chosen', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: 'Practise progressions' }));
+    expect(screen.getByLabelText('Key')).toHaveValue('A');
+    expect(screen.getByText(/choose a progression to see its chords/)).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: /^Chords of/ })).toBeNull();
+    within(screen.getByRole('group', { name: 'Progressions in A major' }))
+      .getAllByRole('button')
+      .forEach((button) => expect(button).toHaveAttribute('aria-pressed', 'false'));
+
+    await user.click(screen.getByRole('button', { name: 'ii–V–I' }));
+    expect(screen.getByRole('heading', { name: 'ii–V–I in A major' })).toBeInTheDocument();
+    expect(screen.queryByText(/choose a progression to see its chords/)).toBeNull();
+    expect(screen.queryByRole('heading', { name: /12-bar blues in/ })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '12-bar blues' }));
+    expect(screen.getByRole('heading', { name: '12-bar blues in A' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'ii–V–I in A major' })).toBeNull();
+  });
+
   it('updates chord names and diagrams when the key changes', async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -1418,6 +1524,8 @@ describe('practise progressions', () => {
     await user.selectOptions(screen.getByLabelText('Key'), 'Aflat');
     await user.click(screen.getByRole('button', { name: 'Natural minor' }));
     expect(screen.getByLabelText('Key')).toHaveValue('Gsharp');
+    expect(screen.getByText(/choose a progression to see its chords/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'i–VI–III–VII' }));
     expect(screen.getByRole('button', { name: 'i–VI–III–VII' })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -1429,6 +1537,7 @@ describe('practise progressions', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('tab', { name: 'Practise progressions' }));
+    await user.click(screen.getByRole('button', { name: '12-bar blues' }));
     const bars = within(screen.getByRole('list', { name: /Chords of I7–I7/ })).getAllByRole(
       'listitem',
     );

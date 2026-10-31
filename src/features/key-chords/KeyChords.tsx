@@ -54,12 +54,13 @@ interface KeyChordsProps {
   onFretboardLabelModeChange: (mode: FretboardLabelMode) => void;
 }
 
-const DEFAULT_TONIC_ID = 'C';
+const DEFAULT_TONIC_ID = 'A';
 
 /**
- * "Chords in a key" tab. State is four selections: tonic, scale type, chord degree and string
- * set. The scale, its seven triads, the highlighted notes and every triad voicing are derived
- * during render. The degree is kept across scale changes (ii stays ii), so the user can
+ * "Chords in a key" tab. Like Explore chords, it opens empty: the user picks a root and presses
+ * "Show chords in this key"; from then on the scale type, chord degree and string set are live
+ * controls. The scale, its seven triads, the highlighted notes and every triad voicing are
+ * derived during render. The degree is kept across scale changes (ii stays ii), so the user can
  * compare the same degree in different scales. The tonic is whichever of the shared roots the
  * user picked, spelled exactly so: C♯ major is C♯ major, D♯ major keeps its double sharps.
  */
@@ -68,13 +69,55 @@ export function KeyChords({
   fretboardLabelMode,
   onFretboardLabelModeChange,
 }: KeyChordsProps) {
-  const [tonicId, setTonicId] = useState(DEFAULT_TONIC_ID);
+  const [pickedTonicId, setPickedTonicId] = useState(DEFAULT_TONIC_ID);
+  const [shownTonicId, setShownTonicId] = useState<string | null>(null);
   const [scaleType, setScaleType] = useState<ScaleType>('major');
   const [degree, setDegree] = useState(1);
   const [stringSetId, setStringSetId] = useState<StringSetId>(TRIAD_STRING_SETS[0].id);
   const tuning = STANDARD_TUNING;
 
-  const tonic = rootOptionById(CHORD_ROOTS, tonicId) ?? CHORD_ROOTS[0];
+  const picker = (
+    <form
+      className="controls"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setShownTonicId(pickedTonicId);
+      }}
+    >
+      <LabeledSelect
+        id="key-chords-root"
+        label="Root note"
+        value={pickedTonicId}
+        options={CHORD_ROOTS}
+        onChange={setPickedTonicId}
+      />
+      <button type="submit" className="button">
+        Show chords in this key
+      </button>
+    </form>
+  );
+  const lead = (
+    <div className="section-lead">
+      <h2 className="section-title">Every key has seven chords.</h2>
+      <p className="section-subtitle">
+        Choose a key, see its notes and chords, then learn each chord as triads on the neck.
+      </p>
+    </div>
+  );
+
+  const tonic = shownTonicId === null ? null : rootOptionById(CHORD_ROOTS, shownTonicId);
+  if (!tonic) {
+    return (
+      <div className="key-chords">
+        {lead}
+        {picker}
+        <p className="empty-state">
+          Pick a root note and show the chords in its key to get started.
+        </p>
+      </div>
+    );
+  }
+
   const scale = { tonic: tonic.note, type: scaleType };
   const name = scaleName(scale);
   const spokenScale = `${spokenNoteName(tonic.note)} ${SCALE_TYPE_LABELS[scaleType].toLowerCase()}`;
@@ -134,21 +177,14 @@ export function KeyChords({
 
   return (
     <div className="key-chords">
-      <div className="section-lead">
-        <h2 className="section-title">Every key has seven chords.</h2>
-        <p className="section-subtitle">
-          Choose a key, see its notes and chords, then learn each chord as triads on the neck.
-        </p>
-      </div>
+      {lead}
+      {picker}
 
-      <div className="controls">
-        <LabeledSelect
-          id="key-chords-root"
-          label="Root note"
-          value={tonic.id}
-          options={CHORD_ROOTS}
-          onChange={setTonicId}
-        />
+      <p className="visually-hidden" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
+
+      <div className="stack">
         <div className="field">
           <span className="field__label">Scale type</span>
           <ToggleButtons
@@ -158,13 +194,7 @@ export function KeyChords({
             onChange={setScaleType}
           />
         </div>
-      </div>
 
-      <p className="visually-hidden" aria-live="polite" aria-atomic="true">
-        {announcement}
-      </p>
-
-      <div className="stack">
         <section className="key-chords__panel" aria-labelledby="key-scale-heading">
           <h3 id="key-scale-heading" className="key-chords__heading">
             Notes in {name}

@@ -28,6 +28,11 @@ const DEFAULT_TONIC_ID = 'A';
 /** Shape choices are remembered per template slot (or per blues degree) so changing key keeps them. */
 type ShapeChoices = Readonly<Record<string, string>>;
 
+/**
+ * Practise progressions tab. Like the other tabs it opens empty: key and mode are picked up
+ * front, and the chords appear once a progression (or the 12-bar blues) is chosen. A chosen
+ * diatonic progression survives a mode change by falling back to the first of the new mode.
+ */
 export function ProgressionPractice() {
   const [mode, setMode] = useState<Mode>('major');
   const [tonicId, setTonicId] = useState(DEFAULT_TONIC_ID);
@@ -38,13 +43,19 @@ export function ProgressionPractice() {
   const tonic = rootOptionById(tonics, tonicId) ?? tonics[0];
   const key = { tonic: tonic.note, mode };
   const templates = progressionsForMode(mode);
-  const template = templates.find((candidate) => candidate.id === progressionId) ?? templates[0];
-  const progression = instantiateProgression(template, key, CHORD_TYPE_CATALOG);
-  const blues = instantiateProgression(
-    TWELVE_BAR_BLUES,
-    { tonic: tonic.note, mode: 'major' },
-    CHORD_TYPE_CATALOG,
-  );
+  const bluesChosen = progressionId === TWELVE_BAR_BLUES.id;
+  const template =
+    progressionId === null || bluesChosen
+      ? null
+      : (templates.find((candidate) => candidate.id === progressionId) ?? templates[0]);
+  const progression = template ? instantiateProgression(template, key, CHORD_TYPE_CATALOG) : null;
+  const blues = bluesChosen
+    ? instantiateProgression(
+        TWELVE_BAR_BLUES,
+        { tonic: tonic.note, mode: 'major' },
+        CHORD_TYPE_CATALOG,
+      )
+    : null;
 
   const changeMode = (nextMode: Mode) => {
     setMode(nextMode);
@@ -88,48 +99,62 @@ export function ProgressionPractice() {
       <div className="stack">
         <ToggleButtons
           label={`Progressions in ${keyName(key)}`}
-          options={templates.map((candidate) => ({
-            id: candidate.id,
-            label: templateName(candidate),
-          }))}
-          value={template.id}
+          options={[
+            ...templates.map((candidate) => ({
+              id: candidate.id,
+              label: templateName(candidate),
+            })),
+            { id: TWELVE_BAR_BLUES.id, label: '12-bar blues' },
+          ]}
+          value={bluesChosen ? TWELVE_BAR_BLUES.id : (template?.id ?? null)}
           onChange={setProgressionId}
         />
 
-        <section aria-labelledby="progression-heading">
-          <h3 id="progression-heading" className="progression-practice__heading">
-            {templateName(template)} in {keyName(key)}
-          </h3>
-          <p className="section-subtitle">{template.description}</p>
-          <p className="note-text progression-practice__legend">
-            Uppercase numerals are major chords, lowercase are minor. A ° marks a diminished chord.
+        {!template && !blues && (
+          <p className="empty-state">
+            Pick a key, then choose a progression to see its chords and shapes.
           </p>
-          <ProgressionGrid
-            progression={progression}
-            slotKey={(_entry, index) => `${template.id}:${index}`}
-            choices={shapeChoices}
-            onChoose={chooseShape}
-          />
-        </section>
+        )}
 
-        <section aria-labelledby="blues-heading" className="progression-practice__blues">
-          <h3 id="blues-heading" className="progression-practice__heading">
-            12-bar blues in {noteName(tonic.note)}
-          </h3>
-          <p className="section-subtitle">{TWELVE_BAR_BLUES.description}</p>
-          <p className="note-text progression-practice__legend">
-            Blues follows its own convention: dominant sevenths on I, IV and V, even though I7 and
-            IV7 are not diatonic to the major key. One card per bar; choose a shape for I7, IV7 or
-            V7 and every bar with that chord follows.
-          </p>
-          <ProgressionGrid
-            progression={blues}
-            slotKey={(entry) => `blues:${entry.step.degree}`}
-            choices={shapeChoices}
-            onChoose={chooseShape}
-            showBarNumbers
-          />
-        </section>
+        {template && progression && (
+          <section aria-labelledby="progression-heading">
+            <h3 id="progression-heading" className="progression-practice__heading">
+              {templateName(template)} in {keyName(key)}
+            </h3>
+            <p className="section-subtitle">{template.description}</p>
+            <p className="note-text progression-practice__legend">
+              Uppercase numerals are major chords, lowercase are minor. A ° marks a diminished
+              chord.
+            </p>
+            <ProgressionGrid
+              progression={progression}
+              slotKey={(_entry, index) => `${template.id}:${index}`}
+              choices={shapeChoices}
+              onChoose={chooseShape}
+            />
+          </section>
+        )}
+
+        {blues && (
+          <section aria-labelledby="blues-heading" className="progression-practice__blues">
+            <h3 id="blues-heading" className="progression-practice__heading">
+              12-bar blues in {noteName(tonic.note)}
+            </h3>
+            <p className="section-subtitle">{TWELVE_BAR_BLUES.description}</p>
+            <p className="note-text progression-practice__legend">
+              Blues follows its own convention: dominant sevenths on I, IV and V, even though I7 and
+              IV7 are not diatonic to the major key. One card per bar; choose a shape for I7, IV7 or
+              V7 and every bar with that chord follows.
+            </p>
+            <ProgressionGrid
+              progression={blues}
+              slotKey={(entry) => `blues:${entry.step.degree}`}
+              choices={shapeChoices}
+              onChoose={chooseShape}
+              showBarNumbers
+            />
+          </section>
+        )}
       </div>
     </div>
   );
