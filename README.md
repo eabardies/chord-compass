@@ -59,9 +59,12 @@ src/
   features/
     chord-explorer/        "Explore chords" tab: state and orchestration
     chord-finder/          "Chord finder" tab: search state, lookup, result and instructions
-    triad-learning/        "Learn triads" tab: state, view models for the triad diagrams
+    key-chords/            "Chords in a key" tab: scale type, diatonic chord cards, key fretboard
+    triad-learning/        "Learn triads" tab: controls, summary, fretboard section
     progression-practice/ "Practise progressions" tab: state and orchestration
-  components/       reusable presentation: ChordDiagram, TriadDiagram, TriadFretboard, Tabs, ...
+  components/       reusable presentation: ChordDiagram, ScaleFretboard, Tabs, ...
+    triads/         shared triad UI: TriadDiagram, TriadFretboard, TriadInversionCard,
+                    StringSetSelector and the view models that feed them
   styles/           design tokens (explicit light and dark themes) and base styles
   theme/            ThemeProvider, useTheme, ThemeToggle, resolution and storage helpers
 ```
@@ -233,16 +236,38 @@ The "Learn triads" tab teaches how one triad appears in root position, first inv
 second inversion on three adjacent strings, and how those three shapes line up along the neck.
 Each step is shown explicitly: chord formula → chord notes → inversion order → fret positions.
 
-- **Qualities**: major (`1–3–5`) and minor (`1–♭3–5`). The quality is a chord type whose
-  formula has degrees 1, 3 and 5, so diminished and augmented can be added without new logic.
-- **String sets**: strings 1–2–3, 2–3–4 and 3–4–5 (guitar numbering, 1 = high E).
+- **Qualities**: major (`1–3–5`), minor (`1–♭3–5`), diminished (`1–♭3–♭5`) and augmented
+  (`1–3–♯5`). The quality is a chord type whose formula has degrees 1, 3 and 5.
+- **String sets**: strings 1–2–3 (treble), 2–3–4, 3–4–5 and 4–5–6 (bass), guitar numbering
+  with 1 = high E.
 - **String ordering**: internally every set is a low-to-high list of string indexes, like
   every other fret list in the app. The interface writes each set low to high next to its name
   so the two conventions never clash: strings 1–2–3 are `3–2–1 · G–B–e`, strings 2–3–4 are
-  `4–3–2 · D–G–B`, strings 3–4–5 are `5–4–3 · A–D–G`. The inversion cards draw the lowest
-  string on the left; the fretboard view draws the highest string on top, as tablature does.
-- **Inversion order** (low to high): root position `1–3–5`, first inversion `3–5–1`,
-  second inversion `5–1–3`, with `♭3` for minor.
+  `4–3–2 · D–G–B`, strings 3–4–5 are `5–4–3 · A–D–G`.
+- **Diagram orientation**: every triad diagram is a horizontal neck in tablature orientation:
+  string 1 (high e) on top, string 6 (low E) at the bottom, the nut on the left, fret numbers
+  above each column. All six strings are drawn so the set can be seen in place; the three
+  strings of the set are heavier and sit on a tinted band, the others stay thin. A window that
+  starts at fret 1 shows a thick nut and an open "0" column; higher windows show no nut and
+  label every fret. The label "Tab view · high e at top / Nut ← → Bridge" is always printed.
+- **Markers**: each marker shows the chord-tone role (`R`, `3`, `♭3`, `5`, `♭5`, `♯5`) with
+  the note name underneath by default ("Marker labels" can show either alone). The root is
+  ringed as well as coloured. Formulas keep `1` for the root because they count scale degrees.
+- **Inversion order** (low to high): root position `R–3–5`, first inversion `3–5–R`,
+  second inversion `5–R–3`, with `♭3`, `♭5` or `♯5` as the quality demands. Each card names
+  the bass note and writes the tones from the lowest string of the set to the highest, which
+  reads bottom-up on the diagram. Voicings are validated against the chord before rendering
+  (`assertVoicingMatchesTriad`): right tones, right order, no doubled tone.
+- **Chords in a key** (its own tab): a root and one of four scale types (major, natural,
+  harmonic and ascending melodic minor, `SCALE_FORMULAS` in `domain/music/keys.ts`). The
+  scale is spelled by degree, so F♯ major has an E♯ and G♯ harmonic minor an F𝄪. Its seven
+  triads come from `harmonizeScale` (stack thirds, classify by sounding intervals; no table of
+  qualities per scale). Picking a chord card highlights its tones in the scale list and on a
+  fretboard of the key's own scale, shows a selected-chord summary ("ii in C major") and the
+  three inversions with the same diagrams and string-set control; "Practise all … triads" opens
+  Learn triads with that root, quality and string set (the Learn triads selections live in the
+  app shell for this reason). Progressions still use `Key` with `Mode` major/minor, which
+  delegates to the same scale code.
 - **How shapes are calculated** (`domain/guitar/triadVoicing.ts`): each string of the set
   is assigned the tone the inversion puts in that voice. Every fret from 0 to 15 where the
   string sounds that pitch class is a candidate (an open-string note is also available at

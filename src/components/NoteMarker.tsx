@@ -1,4 +1,4 @@
-import { MARKER_HEIGHT, markerWidth } from './markerGeometry';
+import { markerHeight, markerWidth } from './markerGeometry';
 import './NoteMarker.css';
 
 const RING_GAP = 3;
@@ -15,6 +15,8 @@ interface NoteMarkerProps {
   cx: number;
   cy: number;
   label: string;
+  /** Second, smaller line under the label, e.g. the note name under the degree. */
+  sublabel?: string | undefined;
   /** Roots get an extra ring so they stand out without relying on colour. */
   isRoot: boolean;
   /** Open strings are drawn outlined instead of filled; shorthand for variant "outlined". */
@@ -24,21 +26,25 @@ interface NoteMarkerProps {
   width?: number;
   /** Extra attributes for tests or tooling, e.g. data-tone. */
   dataTone?: string;
+  /** Further data-* attributes (keys without the "data-" prefix). */
+  data?: Record<string, string | number>;
 }
 
-/** A labelled pill marker for SVG diagrams. Purely visual: the label is already formatted. */
+/** A labelled pill marker for SVG diagrams. Purely visual: the labels are already formatted. */
 export function NoteMarker({
   cx,
   cy,
   label,
+  sublabel,
   isRoot,
   open = false,
   variant,
   width,
   dataTone,
+  data = {},
 }: NoteMarkerProps) {
-  const w = width ?? markerWidth(label);
-  const h = MARKER_HEIGHT;
+  const w = width ?? markerWidth(label, sublabel);
+  const h = markerHeight(sublabel);
   const resolved: NoteMarkerVariant = variant ?? (open ? 'outlined' : 'filled');
   const variantClass = {
     filled: 'note-marker--fretted',
@@ -46,11 +52,15 @@ export function NoteMarker({
     quiet: 'note-marker--quiet',
     altered: 'note-marker--altered',
   }[resolved];
+  const dataAttributes = Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [`data-${key}`, String(value)]),
+  );
   return (
     <g
       className={`note-marker ${variantClass}${isRoot ? ' note-marker--root' : ''}`}
       data-tone={dataTone}
       data-label={label}
+      {...dataAttributes}
     >
       {isRoot && (
         <rect
@@ -70,9 +80,20 @@ export function NoteMarker({
         height={h}
         rx={h / 2}
       />
-      <text className="note-marker__label" x={cx} y={cy + 3.5} textAnchor="middle">
-        {label}
-      </text>
+      {sublabel ? (
+        <>
+          <text className="note-marker__label" x={cx} y={cy - 3} textAnchor="middle">
+            {label}
+          </text>
+          <text className="note-marker__sublabel" x={cx} y={cy + 10.5} textAnchor="middle">
+            {sublabel}
+          </text>
+        </>
+      ) : (
+        <text className="note-marker__label" x={cx} y={cy + 3.5} textAnchor="middle">
+          {label}
+        </text>
+      )}
     </g>
   );
 }

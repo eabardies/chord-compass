@@ -1,3 +1,5 @@
+import { TriadInversionGrid } from '../../components/triads/TriadInversionGrid';
+import { fretboardModel } from '../../components/triads/triadViewModels';
 import { CHORD_ROOTS, chordTypeForTriad, rootOptionById } from '../../data';
 import {
   describeStringSet,
@@ -9,19 +11,21 @@ import {
 import { buildTriad, triadNoteNames } from '../../domain/music';
 import { TriadControls } from './TriadControls';
 import { TriadFretboardSection } from './TriadFretboardSection';
-import { TriadInversionGrid } from './TriadInversionGrid';
 import { TriadSummary } from './TriadSummary';
-import { useTriadLearningState } from './useTriadLearningState';
-import { fretboardModel } from './viewModels';
+import type { TriadLearningState } from './useTriadLearningState';
 import './TriadLearning.css';
+
+interface TriadLearningProps {
+  /** Owned by the app shell so that other sections can send a chord here to practise. */
+  state: TriadLearningState;
+}
 
 /**
  * Learn triads tab. State is four selections (root, quality, string set, label mode); the
  * triad, its inversions and every fret position are derived during render.
  */
-export function TriadLearning() {
-  const { selections, setRootId, setQuality, setStringSetId, setLabelMode } =
-    useTriadLearningState();
+export function TriadLearning({ state }: TriadLearningProps) {
+  const { selections, setRootId, setQuality, setStringSetId, setLabelMode } = state;
   const tuning = STANDARD_TUNING;
 
   const root = rootOptionById(CHORD_ROOTS, selections.rootId) ?? CHORD_ROOTS[0];

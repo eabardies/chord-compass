@@ -1,37 +1,87 @@
-import { interval, transposeNote, type Interval } from './intervals';
+import { interval, intervalLabel, transposeNote, type Interval } from './intervals';
 import { noteName, normalizePitchClass, pitchClassOf, type NoteSpelling } from './notes';
+
+/**
+ * Scales are written as formulas relative to the major scale of the tonic, so every scale
+ * note is spelled by degree (one letter each) and never from a chromatic table: C melodic
+ * minor is C D E♭ F G A B, G♭ major has a C♭, D♯ harmonic minor has a C𝄪.
+ */
+export type ScaleType = 'major' | 'natural-minor' | 'harmonic-minor' | 'melodic-minor';
+
+export const SCALE_TYPES: readonly ScaleType[] = [
+  'major',
+  'natural-minor',
+  'harmonic-minor',
+  'melodic-minor',
+];
+
+export const SCALE_TYPE_LABELS: Record<ScaleType, string> = {
+  major: 'Major',
+  'natural-minor': 'Natural minor',
+  'harmonic-minor': 'Harmonic minor',
+  'melodic-minor': 'Melodic minor',
+};
+
+function formula(text: string): readonly Interval[] {
+  return text.split(' ').map((token) => {
+    const alteration = token.startsWith('♭') ? -1 : token.startsWith('♯') ? 1 : 0;
+    return interval(Number(token.replace(/[♭♯]/, '')), alteration);
+  });
+}
+
+export const SCALE_FORMULAS: Record<ScaleType, readonly Interval[]> = {
+  major: formula('1 2 3 4 5 6 7'),
+  'natural-minor': formula('1 2 ♭3 4 5 ♭6 ♭7'),
+  'harmonic-minor': formula('1 2 ♭3 4 5 ♭6 7'),
+  // Ascending form; the descending form is the natural minor.
+  'melodic-minor': formula('1 2 ♭3 4 5 6 7'),
+};
+
+export interface Scale {
+  readonly tonic: NoteSpelling;
+  readonly type: ScaleType;
+}
+
+/** "C harmonic minor" */
+export function scaleName(scale: Scale): string {
+  return `${noteName(scale.tonic)} ${SCALE_TYPE_LABELS[scale.type].toLowerCase()}`;
+}
+
+/** ["1", "2", "♭3", ...] */
+export function scaleDegreeLabels(type: ScaleType): string[] {
+  return SCALE_FORMULAS[type].map(intervalLabel);
+}
+
+/** The seven scale notes, each letter used exactly once. */
+export function scaleNotesOf(scale: Scale): NoteSpelling[] {
+  return SCALE_FORMULAS[scale.type].map((value) => transposeNote(scale.tonic, value));
+}
+
+/** Whether a scale type is one of the minors; decides which tonic spellings are offered. */
+export function isMinorScale(type: ScaleType): boolean {
+  return type !== 'major';
+}
 
 export type Mode = 'major' | 'minor';
 
+/** A key as progressions use it: "minor" means natural minor throughout the app. */
 export interface Key {
   readonly tonic: NoteSpelling;
-  /** "minor" means natural minor throughout the app. */
   readonly mode: Mode;
 }
 
-/** Scale degrees of each mode, written relative to the major scale of the tonic. */
-const MODE_FORMULAS: Record<Mode, readonly Interval[]> = {
-  major: [1, 2, 3, 4, 5, 6, 7].map((degree) => interval(degree)),
-  minor: [
-    interval(1),
-    interval(2),
-    interval(3, -1),
-    interval(4),
-    interval(5),
-    interval(6, -1),
-    interval(7, -1),
-  ],
-};
-
 export const MODE_LABELS: Record<Mode, string> = { major: 'Major', minor: 'Natural minor' };
+
+export function modeScaleType(mode: Mode): ScaleType {
+  return mode === 'major' ? 'major' : 'natural-minor';
+}
 
 export function keyName(key: Key): string {
   return `${noteName(key.tonic)} ${key.mode}`;
 }
 
-/** The seven scale notes, each letter used exactly once. */
 export function scaleNotes(key: Key): NoteSpelling[] {
-  return MODE_FORMULAS[key.mode].map((value) => transposeNote(key.tonic, value));
+  return scaleNotesOf({ tonic: key.tonic, type: modeScaleType(key.mode) });
 }
 
 export type TriadQuality = 'major' | 'minor' | 'diminished' | 'augmented';
@@ -52,13 +102,13 @@ const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'] as const;
 /**
  * Stack thirds on every scale degree and classify the resulting triad. The quality is read
  * from the sounding intervals (3 or 4 semitones to the third, 6/7/8 to the fifth), so the
- * same code harmonizes any mode without a lookup table of qualities.
+ * same code harmonizes any scale type without a lookup table of qualities.
  */
-export function harmonizeKey(key: Key): DiatonicTriad[] {
-  const scale = scaleNotes(key);
-  return scale.map((root, index) => {
-    const third = scale[(index + 2) % scale.length];
-    const fifth = scale[(index + 4) % scale.length];
+export function harmonizeScale(scale: Scale): DiatonicTriad[] {
+  const notes = scaleNotesOf(scale);
+  return notes.map((root, index) => {
+    const third = notes[(index + 2) % notes.length];
+    const fifth = notes[(index + 4) % notes.length];
     const quality = classifyTriad(root, third, fifth);
     return {
       degree: index + 1,
@@ -71,9 +121,13 @@ export function harmonizeKey(key: Key): DiatonicTriad[] {
   });
 }
 
+export function harmonizeKey(key: Key): DiatonicTriad[] {
+  return harmonizeScale({ tonic: key.tonic, type: modeScaleType(key.mode) });
+}
+
 /**
  * Classify three spelled notes as a triad by their sounding intervals above the root. Shared
- * by key harmonization and by `buildTriad`, so a formula and a harmonized degree agree.
+ * by harmonization and by `buildTriad`, so a formula and a harmonized degree agree.
  */
 export function classifyTriad(
   root: NoteSpelling,

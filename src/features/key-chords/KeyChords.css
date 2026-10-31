@@ -1,0 +1,143 @@
+.key-chords__panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  color: var(--color-text-primary);
+}
+
+.key-chords__heading {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.key-chords__panel .section-subtitle {
+  margin-top: calc(-1 * var(--space-2));
+}
+
+/* Chord cards: seven in a row where there is room, wrapping to two or more rows below. */
+.chord-cards {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+}
+
+@media (max-width: 30rem) {
+  .chord-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chord-card {
+  position: relative;
+  min-height: 4.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.chord-card:hover {
+  border-color: var(--color-accent);
+}
+
+.chord-card__numeral {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.chord-card__symbol {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.chord-card__quality {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Pressed: selected colours plus a heavier border and a check, so it reads without colour. */
+.chord-card[aria-pressed='true'] {
+  background: var(--color-selected-surface);
+  border: 2px solid var(--color-accent);
+  color: var(--color-selected-text);
+  padding: calc(var(--space-2) - 1px) calc(var(--space-3) - 1px);
+}
+
+.chord-card[aria-pressed='true'] .chord-card__numeral,
+.chord-card[aria-pressed='true'] .chord-card__quality {
+  color: var(--color-selected-text);
+}
+
+.chord-card[aria-pressed='true']::after {
+  content: '✓';
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+/* Selected chord summary */
+.selected-chord {
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  display: grid;
+  gap: 2px;
+}
+
+.selected-chord__name {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.selected-chord__tones {
+  font-weight: 600;
+}
+
+.selected-chord__role {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* The fretboard keeps a readable size and scrolls sideways on narrow screens. */
+.key-chords__scroller {
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.key-chords__scroller:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.key-chords__shapes-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.key-chords__panel .triad-grid .card {
+  padding: var(--space-4);
+}

@@ -335,17 +335,25 @@ describe('learn triads', () => {
     return user;
   }
 
-  /** Degrees, notes and frets of each inversion card, in card order. */
+  /** Bass, degrees, notes and frets of each inversion card in the visible panel, in card order. */
   const cards = () =>
     (['root', 'first', 'second'] as const).map((inversion) => ({
-      degrees: screen.getByTestId(`${inversion}-degrees`).textContent,
-      notes: screen.getByTestId(`${inversion}-notes`).textContent,
-      frets: screen.getByTestId(`${inversion}-frets`).textContent,
+      bass: panel().getByTestId(`${inversion}-bass`).textContent,
+      degrees: panel().getByTestId(`${inversion}-degrees`).textContent,
+      notes: panel().getByTestId(`${inversion}-notes`).textContent,
+      frets: panel().getByTestId(`${inversion}-frets`).textContent,
     }));
 
-  /** Text printed inside the note markers of a diagram, low string first. */
+  /** Primary text inside the note markers of a diagram, lowest string of the set first. */
   const markerLabels = (image: HTMLElement) =>
-    Array.from(image.querySelectorAll('.note-marker__label')).map((text) => text.textContent);
+    Array.from(image.querySelectorAll('.note-marker'))
+      .sort((a, b) => Number(b.getAttribute('data-string')) - Number(a.getAttribute('data-string')))
+      .map((marker) => marker.querySelector('.note-marker__label')?.textContent);
+
+  const markerSublabels = (image: HTMLElement) =>
+    Array.from(image.querySelectorAll('.note-marker'))
+      .sort((a, b) => Number(b.getAttribute('data-string')) - Number(a.getAttribute('data-string')))
+      .map((marker) => marker.querySelector('.note-marker__sublabel')?.textContent ?? null);
 
   const fretboard = () => screen.getByRole('img', { name: /across the fretboard/ });
 
@@ -356,23 +364,23 @@ describe('learn triads', () => {
       'true',
     );
     expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
-    expect(screen.getByTestId('triad-formula')).toHaveTextContent('1–3–5');
-    expect(screen.getByTestId('triad-notes')).toHaveTextContent('A–C♯–E');
+    expect(panel().getByTestId('triad-formula')).toHaveTextContent('1–3–5');
+    expect(panel().getByTestId('triad-notes')).toHaveTextContent('A–C♯–E');
 
     const inversions = within(screen.getByRole('list', { name: 'Inversions' }));
     expect(
       inversions.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent),
     ).toEqual(['Root position', 'First inversion', 'Second inversion']);
     expect(cards()).toEqual([
-      { degrees: '1–3–5', notes: 'A–C♯–E', frets: '2–2–0' },
-      { degrees: '3–5–1', notes: 'C♯–E–A', frets: '6–5–5' },
-      { degrees: '5–1–3', notes: 'E–A–C♯', frets: '9–10–9' },
+      { bass: 'A in the bass', degrees: 'R → 3 → 5', notes: 'A → C♯ → E', frets: '2–2–0' },
+      { bass: 'C♯ in the bass', degrees: '3 → 5 → R', notes: 'C♯ → E → A', frets: '6–5–5' },
+      { bass: 'E in the bass', degrees: '5 → R → 3', notes: 'E → A → C♯', frets: '9–10–9' },
     ]);
     expect(
       screen.getByRole('img', { name: 'A major, root position on strings 3, 2, 1' }),
     ).toHaveAttribute(
       'aria-description',
-      'A major, root position on strings 3, 2, 1: string 3 2nd fret A (1), string 2 2nd fret C♯ (3), string 1 open E (5).',
+      'A major, root position on strings 3, 2, 1: string 3 2nd fret A (R), string 2 2nd fret C♯ (3), string 1 open E (5). Tab view: string 1, the high e, at the top; string 6, the low E, at the bottom; the nut on the left, frets 1 to 4.',
     );
     expect(
       screen.getByRole('img', { name: 'A major, first inversion on strings 3, 2, 1' }),
@@ -380,6 +388,7 @@ describe('learn triads', () => {
     expect(
       screen.getByRole('img', { name: 'A major, second inversion on strings 3, 2, 1' }),
     ).toBeInTheDocument();
+    expect(panel().getAllByText('Tab view · high e at top')).toHaveLength(4);
 
     expect(fretboard()).toHaveAccessibleName(
       'A major across the fretboard on strings 3–2–1 · G–B–e',
@@ -388,6 +397,7 @@ describe('learn triads', () => {
       'aria-description',
       'Frets 0 to 12, strings 3–2–1 · G–B–e low to high: root position at frets 2–2–0; first inversion at frets 6–5–5; second inversion at frets 9–10–9.',
     );
+    expect(fretboard().querySelectorAll('line[data-string]')).toHaveLength(6);
     expect(screen.getByRole('list', { name: 'Legend' })).toHaveTextContent('Root (ringed)');
   });
 
@@ -395,11 +405,11 @@ describe('learn triads', () => {
     const user = await openTriads();
     await user.selectOptions(panel().getByLabelText('Root note'), 'C');
     expect(screen.getByRole('heading', { name: 'C major' })).toBeInTheDocument();
-    expect(screen.getByTestId('triad-notes')).toHaveTextContent('C–E–G');
+    expect(panel().getByTestId('triad-notes')).toHaveTextContent('C–E–G');
     expect(cards()).toEqual([
-      { degrees: '1–3–5', notes: 'C–E–G', frets: '5–5–3' },
-      { degrees: '3–5–1', notes: 'E–G–C', frets: '9–8–8' },
-      { degrees: '5–1–3', notes: 'G–C–E', frets: '0–1–0' },
+      { bass: 'C in the bass', degrees: 'R → 3 → 5', notes: 'C → E → G', frets: '5–5–3' },
+      { bass: 'E in the bass', degrees: '3 → 5 → R', notes: 'E → G → C', frets: '9–8–8' },
+      { bass: 'G in the bass', degrees: '5 → R → 3', notes: 'G → C → E', frets: '0–1–0' },
     ]);
     expect(
       screen.getByRole('img', { name: 'C major, second inversion on strings 3, 2, 1' }),
@@ -410,70 +420,113 @@ describe('learn triads', () => {
     );
   });
 
-  it('switches between major and minor', async () => {
+  it('switches between the four triad qualities', async () => {
     const user = await openTriads();
     await user.click(screen.getByRole('button', { name: 'Minor' }));
     expect(screen.getByRole('button', { name: 'Minor' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('heading', { name: 'A minor' })).toBeInTheDocument();
-    expect(screen.getByTestId('triad-formula')).toHaveTextContent('1–♭3–5');
-    expect(screen.getByTestId('triad-notes')).toHaveTextContent('A–C–E');
+    expect(panel().getByTestId('triad-formula')).toHaveTextContent('1–♭3–5');
+    expect(panel().getByTestId('triad-notes')).toHaveTextContent('A–C–E');
     expect(cards()).toEqual([
-      { degrees: '1–♭3–5', notes: 'A–C–E', frets: '2–1–0' },
-      { degrees: '♭3–5–1', notes: 'C–E–A', frets: '5–5–5' },
-      { degrees: '5–1–♭3', notes: 'E–A–C', frets: '9–10–8' },
+      { bass: 'A in the bass', degrees: 'R → ♭3 → 5', notes: 'A → C → E', frets: '2–1–0' },
+      { bass: 'C in the bass', degrees: '♭3 → 5 → R', notes: 'C → E → A', frets: '5–5–5' },
+      { bass: 'E in the bass', degrees: '5 → R → ♭3', notes: 'E → A → C', frets: '9–10–8' },
+    ]);
+
+    await user.selectOptions(panel().getByLabelText('Root note'), 'B');
+    await user.click(screen.getByRole('button', { name: 'Diminished' }));
+    expect(screen.getByRole('heading', { name: 'B diminished' })).toBeInTheDocument();
+    expect(cards()[0]).toEqual({
+      bass: 'B in the bass',
+      degrees: 'R → ♭3 → ♭5',
+      notes: 'B → D → F',
+      frets: '4–3–1',
+    });
+
+    await user.selectOptions(panel().getByLabelText('Root note'), 'Eflat');
+    await user.click(screen.getByRole('button', { name: 'Augmented' }));
+    expect(screen.getByRole('heading', { name: 'E♭ augmented' })).toBeInTheDocument();
+    expect(cards()).toEqual([
+      { bass: 'E♭ in the bass', degrees: 'R → 3 → ♯5', notes: 'E♭ → G → B', frets: '8–8–7' },
+      { bass: 'G in the bass', degrees: '3 → ♯5 → R', notes: 'G → B → E♭', frets: '12–12–11' },
+      { bass: 'B in the bass', degrees: '♯5 → R → 3', notes: 'B → E♭ → G', frets: '4–4–3' },
+    ]);
+    expect(markerLabels(screen.getByRole('img', { name: /E♭ augmented, root position/ }))).toEqual([
+      'R',
+      '3',
+      '♯5',
     ]);
 
     await user.click(screen.getByRole('button', { name: 'Major' }));
-    expect(screen.getByRole('heading', { name: 'A major' })).toBeInTheDocument();
-    expect(cards()[0].frets).toBe('2–2–0');
+    expect(screen.getByRole('heading', { name: 'E♭ major' })).toBeInTheDocument();
   });
 
   it('changes the string set and shows its low-to-high order', async () => {
     const user = await openTriads();
-    const sets = within(screen.getByRole('group', { name: 'String set' }));
+    const sets = within(panel().getByRole('group', { name: 'String set' }));
     expect(sets.getAllByRole('button').map((button) => button.textContent)).toEqual([
-      'Strings 1–2–33–2–1 · G–B–e',
-      'Strings 2–3–44–3–2 · D–G–B',
-      'Strings 3–4–55–4–3 · A–D–G',
+      '1–2–3 · Treble3–2–1 · G–B–e',
+      '2–3–44–3–2 · D–G–B',
+      '3–4–55–4–3 · A–D–G',
+      '4–5–6 · Bass6–5–4 · E–A–D',
     ]);
 
-    await user.click(sets.getByRole('button', { name: /^Strings 3–4–5/ }));
+    await user.click(sets.getByRole('button', { name: /^3–4–5/ }));
     expect(cards()).toEqual([
-      { degrees: '1–3–5', notes: 'A–C♯–E', frets: '12–11–9' },
-      { degrees: '3–5–1', notes: 'C♯–E–A', frets: '4–2–2' },
-      { degrees: '5–1–3', notes: 'E–A–C♯', frets: '7–7–6' },
+      { bass: 'A in the bass', degrees: 'R → 3 → 5', notes: 'A → C♯ → E', frets: '12–11–9' },
+      { bass: 'C♯ in the bass', degrees: '3 → 5 → R', notes: 'C♯ → E → A', frets: '4–2–2' },
+      { bass: 'E in the bass', degrees: '5 → R → 3', notes: 'E → A → C♯', frets: '7–7–6' },
     ]);
+    const rootPosition = screen.getByRole('img', {
+      name: 'A major, root position on strings 5, 4, 3',
+    });
+    expect(rootPosition.querySelectorAll('line[data-string]')).toHaveLength(6);
     expect(
-      screen.getByRole('img', { name: 'A major, root position on strings 5, 4, 3' }),
-    ).toBeInTheDocument();
+      Array.from(rootPosition.querySelectorAll('line[data-active="true"]')).map((line) =>
+        line.getAttribute('data-string'),
+      ),
+    ).toEqual(['5', '4', '3']); // drawn low E first
     expect(fretboard()).toHaveAccessibleName(
       'A major across the fretboard on strings 5–4–3 · A–D–G',
     );
+
+    await user.click(sets.getByRole('button', { name: /^4–5–6/ }));
+    expect(cards()[0].frets).toBe('5–4–2');
+    expect(
+      screen.getByRole('img', { name: 'A major, root position on strings 6, 5, 4' }),
+    ).toBeInTheDocument();
   });
 
-  it('switches marker labels between degrees, notes and both', async () => {
+  it('shows degree over note by default and switches to degrees or notes only', async () => {
     const user = await openTriads();
     const firstInversion = () =>
       screen.getByRole('img', { name: 'A major, first inversion on strings 3, 2, 1' });
-    expect(markerLabels(firstInversion())).toEqual(['3', '5', '1']);
+    expect(screen.getByRole('button', { name: 'Degree + note' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(markerLabels(firstInversion())).toEqual(['3', '5', 'R']);
+    expect(markerSublabels(firstInversion())).toEqual(['C♯', 'E', 'A']);
 
     await user.click(screen.getByRole('button', { name: 'Notes' }));
     expect(markerLabels(firstInversion())).toEqual(['C♯', 'E', 'A']);
+    expect(markerSublabels(firstInversion())).toEqual([null, null, null]);
     expect(markerLabels(fretboard())).toEqual(['A', 'C♯', 'E', 'C♯', 'E', 'A', 'E', 'A', 'C♯']);
 
-    await user.click(screen.getByRole('button', { name: 'Both' }));
-    expect(markerLabels(firstInversion())).toEqual(['3 / C♯', '5 / E', '1 / A']);
-
     await user.click(screen.getByRole('button', { name: 'Degrees' }));
-    expect(markerLabels(firstInversion())).toEqual(['3', '5', '1']);
+    expect(markerLabels(firstInversion())).toEqual(['3', '5', 'R']);
+    expect(markerSublabels(firstInversion())).toEqual([null, null, null]);
+
+    await user.click(screen.getByRole('button', { name: 'Degree + note' }));
+    expect(markerSublabels(firstInversion())).toEqual(['C♯', 'E', 'A']);
   });
 
   it('keeps its selections, and the other tabs theirs, when switching tabs', async () => {
     const user = await openTriads();
     await user.selectOptions(panel().getByLabelText('Root note'), 'Eflat');
     await user.click(screen.getByRole('button', { name: 'Minor' }));
-    await user.click(screen.getByRole('button', { name: /^Strings 2–3–4/ }));
-    await user.click(screen.getByRole('button', { name: 'Both' }));
+    await user.click(screen.getByRole('button', { name: /^2–3–4/ }));
+    await user.click(screen.getByRole('button', { name: 'Notes' }));
     expect(screen.getByRole('heading', { name: 'E♭ minor' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Explore chords' }));
@@ -485,15 +538,316 @@ describe('learn triads', () => {
     expect(screen.getByRole('heading', { name: 'E♭ minor' })).toBeInTheDocument();
     expect(panel().getByLabelText('Root note')).toHaveValue('Eflat');
     expect(screen.getByRole('button', { name: 'Minor' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /^Strings 2–3–4/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    expect(screen.getByRole('button', { name: 'Both' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByTestId('triad-notes')).toHaveTextContent('E♭–G♭–B♭');
+    expect(screen.getByRole('button', { name: /^2–3–4/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Notes' })).toHaveAttribute('aria-pressed', 'true');
+    expect(panel().getByTestId('triad-notes')).toHaveTextContent('E♭–G♭–B♭');
 
     await user.click(screen.getByRole('tab', { name: 'Explore chords' }));
     expect(screen.getByRole('heading', { name: 'G major' })).toBeInTheDocument();
+  });
+});
+
+describe('chords in a key', () => {
+  async function openKeys() {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
+    return user;
+  }
+
+  const chordCards = () => within(screen.getByRole('group', { name: 'Chords in this key' }));
+  const stringSets = () => within(screen.getByRole('group', { name: 'String set' }));
+  const scaleTypes = () => within(screen.getByRole('group', { name: 'Scale type' }));
+  const cardTexts = () =>
+    chordCards()
+      .getAllByRole('button')
+      .map((button) => button.textContent);
+  const scaleTiles = () =>
+    within(screen.getByRole('list', { name: /^Notes in / }))
+      .getAllByRole('listitem')
+      .map((item) => ({
+        text: item.textContent?.replace(/,.*$/, ''),
+        highlighted: item.getAttribute('data-highlighted') === 'true',
+      }));
+  const cards = () =>
+    (['root', 'first', 'second'] as const).map((inversion) => ({
+      bass: panel().getByTestId(`${inversion}-bass`).textContent,
+      notes: panel().getByTestId(`${inversion}-notes`).textContent,
+      frets: panel().getByTestId(`${inversion}-frets`).textContent,
+    }));
+  const fretboard = () => screen.getByRole('img', { name: /on the fretboard/ });
+  const fretboardTones = (tone: string) => [
+    ...new Set(
+      Array.from(fretboard().querySelectorAll(`.note-marker[data-tone="${tone}"]`)).map((marker) =>
+        marker.getAttribute('data-label'),
+      ),
+    ),
+  ];
+
+  it('opens on C major with its notes, seven chords, the I chord and its triads', async () => {
+    await openKeys();
+    expect(panel().getByLabelText('Root note')).toHaveValue('C');
+    expect(scaleTypes().getByRole('button', { name: 'Major' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('heading', { name: 'Notes in C major' })).toBeInTheDocument();
+    expect(scaleTiles()).toEqual([
+      { text: 'C1', highlighted: true },
+      { text: 'D2', highlighted: false },
+      { text: 'E3', highlighted: true },
+      { text: 'F4', highlighted: false },
+      { text: 'G5', highlighted: true },
+      { text: 'A6', highlighted: false },
+      { text: 'B7', highlighted: false },
+    ]);
+    expect(cardTexts()).toEqual([
+      'ICMajor',
+      'iiDmMinor',
+      'iiiEmMinor',
+      'IVFMajor',
+      'VGMajor',
+      'viAmMinor',
+      'vii°BdimDiminished',
+    ]);
+    expect(chordCards().getByRole('button', { name: /^C, I, C major/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('C major');
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('C (R) · E (3) · G (5)');
+    expect(panel().getByTestId('key-chord-role')).toHaveTextContent('I in C major');
+    expect(fretboard()).toHaveAccessibleName('C major on the fretboard, C major highlighted');
+    expect(fretboardTones('root')).toEqual(['1/C']);
+    expect(fretboardTones('chord').sort()).toEqual(['3/E', '5/G']);
+    expect(fretboardTones('scale').sort()).toEqual(['2/D', '4/F', '6/A', '7/B']);
+    expect(screen.getByRole('list', { name: 'Inversions of C major' })).toBeInTheDocument();
+    expect(cards()).toEqual([
+      { bass: 'C in the bass', notes: 'C → E → G', frets: '5–5–3' },
+      { bass: 'E in the bass', notes: 'E → G → C', frets: '9–8–8' },
+      { bass: 'G in the bass', notes: 'G → C → E', frets: '0–1–0' },
+    ]);
+    expect(screen.getByRole('button', { name: 'Practise all C major triads' })).toBeInTheDocument();
+  });
+
+  it('selecting a chord highlights its notes, the fretboard, the summary, the triads and the action', async () => {
+    const user = await openKeys();
+    await user.click(chordCards().getByRole('button', { name: /^Dm, ii, D minor/ }));
+    expect(chordCards().getByRole('button', { name: /^Dm, ii/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(chordCards().getByRole('button', { name: /^C, I/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(
+      scaleTiles()
+        .filter((tile) => tile.highlighted)
+        .map((tile) => tile.text),
+    ).toEqual(['D2', 'F4', 'A6']);
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('D minor');
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('D (R) · F (♭3) · A (5)');
+    expect(panel().getByTestId('key-chord-role')).toHaveTextContent('ii in C major');
+    expect(fretboard()).toHaveAccessibleName('C major on the fretboard, D minor highlighted');
+    expect(fretboardTones('root')).toEqual(['2/D']);
+    expect(fretboardTones('chord').sort()).toEqual(['4/F', '6/A']);
+    expect(cards()).toEqual([
+      { bass: 'D in the bass', notes: 'D → F → A', frets: '7–6–5' },
+      { bass: 'F in the bass', notes: 'F → A → D', frets: '10–10–10' },
+      { bass: 'A in the bass', notes: 'A → D → F', frets: '2–3–1' },
+    ]);
+    expect(
+      screen.getByRole('img', { name: 'D minor, root position on strings 3, 2, 1' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Practise all D minor triads' })).toBeInTheDocument();
+
+    await user.click(chordCards().getByRole('button', { name: /^Bdim, vii°, B diminished/ }));
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('B (R) · D (♭3) · F (♭5)');
+    expect(cards()[0]).toEqual({ bass: 'B in the bass', notes: 'B → D → F', frets: '4–3–1' });
+    expect(
+      Array.from(
+        screen
+          .getByRole('img', { name: 'B diminished, root position on strings 3, 2, 1' })
+          .querySelectorAll('.note-marker'),
+      ).map((marker) => marker.getAttribute('data-degree')),
+    ).toEqual(expect.arrayContaining(['R', '♭3', '♭5']));
+  });
+
+  it('changing the scale type updates the notes and every chord card, keeping the degree', async () => {
+    const user = await openKeys();
+    await user.click(chordCards().getByRole('button', { name: /^Em, iii/ }));
+
+    await user.click(scaleTypes().getByRole('button', { name: 'Natural minor' }));
+    expect(screen.getByRole('heading', { name: 'Notes in C natural minor' })).toBeInTheDocument();
+    expect(scaleTiles().map((tile) => tile.text)).toEqual([
+      'C1',
+      'D2',
+      'E♭♭3',
+      'F4',
+      'G5',
+      'A♭♭6',
+      'B♭♭7',
+    ]);
+    expect(cardTexts()).toEqual([
+      'iCmMinor',
+      'ii°DdimDiminished',
+      'IIIE♭Major',
+      'ivFmMinor',
+      'vGmMinor',
+      'VIA♭Major',
+      'VIIB♭Major',
+    ]);
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('E♭ major');
+    expect(panel().getByTestId('key-chord-role')).toHaveTextContent('III in C natural minor');
+
+    await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
+    expect(scaleTiles().map((tile) => tile.text)).toEqual([
+      'C1',
+      'D2',
+      'E♭♭3',
+      'F4',
+      'G5',
+      'A♭♭6',
+      'B7',
+    ]);
+    expect(cardTexts()).toEqual([
+      'iCmMinor',
+      'ii°DdimDiminished',
+      'III+E♭augAugmented',
+      'ivFmMinor',
+      'VGMajor',
+      'VIA♭Major',
+      'vii°BdimDiminished',
+    ]);
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('E♭ augmented');
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('E♭ (R) · G (3) · B (♯5)');
+    expect(cards()).toEqual([
+      { bass: 'E♭ in the bass', notes: 'E♭ → G → B', frets: '8–8–7' },
+      { bass: 'G in the bass', notes: 'G → B → E♭', frets: '12–12–11' },
+      { bass: 'B in the bass', notes: 'B → E♭ → G', frets: '4–4–3' },
+    ]);
+    expect(fretboardTones('chord').sort()).toEqual(['5/G', '7/B']);
+
+    await user.click(scaleTypes().getByRole('button', { name: 'Melodic minor' }));
+    expect(scaleTiles().map((tile) => tile.text)).toEqual([
+      'C1',
+      'D2',
+      'E♭♭3',
+      'F4',
+      'G5',
+      'A6',
+      'B7',
+    ]);
+    expect(cardTexts()).toEqual([
+      'iCmMinor',
+      'iiDmMinor',
+      'III+E♭augAugmented',
+      'IVFMajor',
+      'VGMajor',
+      'vi°AdimDiminished',
+      'vii°BdimDiminished',
+    ]);
+  });
+
+  it('keeps the tonic sound when the scale type changes the spelling list', async () => {
+    const user = await openKeys();
+    await user.selectOptions(panel().getByLabelText('Root note'), 'Aflat');
+    await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
+    expect(panel().getByLabelText('Root note')).toHaveValue('Gsharp');
+    expect(scaleTiles().map((tile) => tile.text)).toEqual([
+      'G♯1',
+      'A♯2',
+      'B♭3',
+      'C♯4',
+      'D♯5',
+      'E♭6',
+      'F𝄪7',
+    ]);
+    expect(cardTexts()[6]).toBe('vii°F𝄪dimDiminished');
+    await user.click(scaleTypes().getByRole('button', { name: 'Major' }));
+    expect(panel().getByLabelText('Root note')).toHaveValue('Aflat');
+  });
+
+  it('keeps the chosen chord when the string set changes, and the string set when the chord changes', async () => {
+    const user = await openKeys();
+    await user.click(chordCards().getByRole('button', { name: /^Dm, ii/ }));
+    await user.click(stringSets().getByRole('button', { name: /^2–3–4/ }));
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('D minor');
+    expect(stringSets().getByRole('button', { name: /^2–3–4/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(cards()).toEqual([
+      { bass: 'D in the bass', notes: 'D → F → A', frets: '12–10–10' },
+      { bass: 'F in the bass', notes: 'F → A → D', frets: '3–2–3' },
+      { bass: 'A in the bass', notes: 'A → D → F', frets: '7–7–6' },
+    ]);
+    expect(
+      screen.getByRole('img', { name: 'D minor, root position on strings 4, 3, 2' }),
+    ).toBeInTheDocument();
+
+    await user.click(chordCards().getByRole('button', { name: /^G, V/ }));
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('G major');
+    expect(stringSets().getByRole('button', { name: /^2–3–4/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      screen.getByRole('img', { name: 'G major, root position on strings 4, 3, 2' }),
+    ).toBeInTheDocument();
+  });
+
+  it('sends the chord and string set to Learn triads with "Practise all … triads"', async () => {
+    const user = await openKeys();
+    await user.click(chordCards().getByRole('button', { name: /^Dm, ii/ }));
+    await user.click(stringSets().getByRole('button', { name: /^3–4–5/ }));
+    await user.click(screen.getByRole('button', { name: 'Practise all D minor triads' }));
+
+    expect(screen.getByRole('tab', { name: 'Learn triads' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('heading', { name: 'D minor' })).toBeInTheDocument();
+    expect(panel().getByLabelText('Root note')).toHaveValue('D');
+    expect(screen.getByRole('button', { name: 'Minor' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /^3–4–5/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(panel().getByTestId('triad-notes')).toHaveTextContent('D–F–A');
+    expect(
+      screen.getByRole('img', { name: /D minor across the fretboard on strings 5–4–3/ }),
+    ).toBeInTheDocument();
+
+    // The key tab itself keeps its own selections.
+    await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
+    expect(panel().getByTestId('key-chord-name')).toHaveTextContent('D minor');
+    expect(stringSets().getByRole('button', { name: /^3–4–5/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('spells sharp-key chords as the key does and still finds a root to practise', async () => {
+    const user = await openKeys();
+    await user.selectOptions(panel().getByLabelText('Root note'), 'Fsharp');
+    expect(scaleTiles().map((tile) => tile.text)).toEqual([
+      'F♯1',
+      'G♯2',
+      'A♯3',
+      'B4',
+      'C♯5',
+      'D♯6',
+      'E♯7',
+    ]);
+    await user.click(chordCards().getByRole('button', { name: /vii°, E♯ diminished/ }));
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('E♯ (R) · G♯ (♭3) · B (♭5)');
+    expect(cards()[0].notes).toBe('E♯ → G♯ → B');
+
+    await user.click(screen.getByRole('button', { name: 'Practise all E♯ diminished triads' }));
+    expect(screen.getByRole('tab', { name: 'Learn triads' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('heading', { name: 'F diminished' })).toBeInTheDocument();
   });
 });
 

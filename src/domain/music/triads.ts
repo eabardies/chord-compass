@@ -80,3 +80,17 @@ export function triadDegreeLabels(tones: readonly TriadTone[]): string[] {
 export function triadNoteNames(tones: readonly TriadTone[]): string[] {
   return tones.map((tone) => noteName(tone.note));
 }
+
+/**
+ * The label guitarists put on a chord tone: "R" for the root, otherwise the degree ("3",
+ * "♭3", "5", "♭5", "♯5"). Formulas keep "1" because they count scale degrees; markers and
+ * tone orders use "R" so the root reads at a glance.
+ */
+export function chordToneLabel(tone: TriadTone): string {
+  return tone.role === 'root' ? 'R' : intervalLabel(tone.interval);
+}
+
+/** ["R", "♭3", "5"] for the given tones, in the order given. */
+export function chordToneLabels(tones: readonly TriadTone[]): string[] {
+  return tones.map(chordToneLabel);
+}

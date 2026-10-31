@@ -13,6 +13,10 @@
   fill: var(--color-inlay);
 }
 
+.triad-fretboard__active-band {
+  fill: var(--color-barre);
+}
+
 .triad-fretboard__nut {
   fill: var(--color-diagram-nut);
 }
@@ -24,7 +28,12 @@
 
 .triad-fretboard__string {
   stroke: var(--color-diagram-line);
-  stroke-width: 1.25;
+  stroke-width: 1;
+}
+
+.triad-fretboard__string--active {
+  stroke: var(--color-diagram-nut);
+  stroke-width: 2.25;
 }
 
 .triad-fretboard__string-name,
@@ -33,10 +42,15 @@
   fill: var(--color-text-muted);
 }
 
+.triad-fretboard__string-name--active {
+  font-weight: 700;
+  fill: var(--color-text-primary);
+}
+
 .triad-fretboard__group {
-  fill: var(--color-barre);
+  fill: none;
   stroke: var(--color-accent);
-  stroke-width: 1;
+  stroke-width: 1.25;
 }
 
 .triad-fretboard__group--stretch {

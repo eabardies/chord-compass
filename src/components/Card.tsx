@@ -6,11 +6,11 @@ interface CardProps {
   badge?: ReactNode;
   children: ReactNode;
   as?: 'section' | 'article' | 'div';
-  headingLevel?: 2 | 3;
+  headingLevel?: 2 | 3 | 4;
 }
 
 export function Card({ title, badge, children, as: Tag = 'section', headingLevel = 2 }: CardProps) {
-  const Heading = headingLevel === 2 ? 'h2' : 'h3';
+  const Heading = `h${headingLevel}` as const;
   return (
     <Tag className="card">
       <header className="card__header">

@@ -4,12 +4,17 @@ import { STANDARD_TUNING } from './domain/guitar';
 import { noteName } from './domain/music';
 import { ChordExplorer } from './features/chord-explorer/ChordExplorer';
 import { ChordFinder } from './features/chord-finder/ChordFinder';
+import { KeyChords } from './features/key-chords/KeyChords';
 import { ProgressionPractice } from './features/progression-practice/ProgressionPractice';
 import { TriadLearning } from './features/triad-learning/TriadLearning';
+import {
+  useTriadLearningState,
+  type TriadPracticeRequest,
+} from './features/triad-learning/useTriadLearningState';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { ThemeToggle } from './theme/ThemeToggle';
 
-type TabId = 'explore' | 'finder' | 'triads' | 'practise';
+type TabId = 'explore' | 'finder' | 'keys' | 'triads' | 'practise';
 
 export function App() {
   return (
@@ -21,7 +26,14 @@ export function App() {
 
 function AppShell() {
   const [tab, setTab] = useState<TabId>('explore');
+  // The Learn triads selections live here so "Practise all … triads" in another tab can set them.
+  const triads = useTriadLearningState();
   const tuningNotes = STANDARD_TUNING.strings.map(noteName).join(' ');
+
+  const practiseTriads = (request: TriadPracticeRequest) => {
+    triads.practise(request);
+    setTab('triads');
+  };
 
   return (
     <div className="app">
@@ -54,7 +66,12 @@ function AppShell() {
           tabs={[
             { id: 'explore', label: 'Explore chords', content: <ChordExplorer /> },
             { id: 'finder', label: 'Chord finder', content: <ChordFinder /> },
-            { id: 'triads', label: 'Learn triads', content: <TriadLearning /> },
+            {
+              id: 'keys',
+              label: 'Chords in a key',
+              content: <KeyChords onPractiseTriads={practiseTriads} />,
+            },
+            { id: 'triads', label: 'Learn triads', content: <TriadLearning state={triads} /> },
             { id: 'practise', label: 'Practise progressions', content: <ProgressionPractice /> },
           ]}
         />

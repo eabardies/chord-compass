@@ -1,5 +1,6 @@
 import {
-  intervalLabel,
+  chordToneLabel,
+  INVERSION_TONE_ORDER,
   invertTriad,
   noteName,
   TRIAD_INVERSIONS,
@@ -48,7 +49,7 @@ export interface TriadVoicing {
 /**
  * Place one inversion of a triad on a string set. Every pitch class occurs on every string
  * within 0..GENERATED_MAX_FRET, so a voicing always exists; `playable` says whether it is a
- * comfortable one.
+ * comfortable one. The result is checked against the chord before it is returned.
  */
 export function voiceTriadInversion(
   triad: Triad,
@@ -67,14 +68,9 @@ export function voiceTriadInversion(
   }
   const positions = stringSet.stringIndexes.map((stringIndex, voice): TriadFretPosition => {
     const openNote = tuning.strings[stringIndex];
-    const fret = combination.frets[voice];
-    const tone = inverted.tones[voice];
-    if (soundingPitchClass(openNote, fret) !== tone.pitchClass) {
-      throw new Error(`String ${stringIndex} fret ${fret} does not sound ${noteName(tone.note)}`);
-    }
-    return { stringIndex, fret, openNote, tone };
+    return { stringIndex, fret: combination.frets[voice], openNote, tone: inverted.tones[voice] };
   }) as [TriadFretPosition, TriadFretPosition, TriadFretPosition];
-  return {
+  const voicing: TriadVoicing = {
     inverted,
     stringSet,
     positions,
@@ -84,6 +80,43 @@ export function voiceTriadInversion(
     span: combination.span,
     playable: combination.span <= GENERATED_MAX_FRET_SPAN,
   };
+  assertVoicingMatchesTriad(voicing);
+  return voicing;
+}
+
+/**
+ * Check a voicing against its chord before anything draws it: every string must sound the
+ * tone the inversion assigns to that voice (so the inversion was not swapped for a lower
+ * one), the three tones must be the chord's root, third and fifth exactly once each, and
+ * the positions must run from the lowest-pitched string of the set to the highest.
+ */
+export function assertVoicingMatchesTriad(voicing: TriadVoicing): void {
+  const { inverted, positions, stringSet } = voicing;
+  const expectedRoles = INVERSION_TONE_ORDER[inverted.inversion];
+  const label = `${inverted.triad.name} ${inverted.name.toLowerCase()}`;
+  positions.forEach((position, voice) => {
+    const expectedString = stringSet.stringIndexes[voice];
+    if (position.stringIndex !== expectedString) {
+      throw new Error(
+        `${label}: voice ${voice} is on string ${stringNumber(position.stringIndex)}, expected string ${stringNumber(expectedString)}`,
+      );
+    }
+    if (position.tone.role !== expectedRoles[voice]) {
+      throw new Error(
+        `${label}: voice ${voice} holds the ${position.tone.role}, expected the ${expectedRoles[voice]}`,
+      );
+    }
+    if (soundingPitchClass(position.openNote, position.fret) !== position.tone.pitchClass) {
+      throw new Error(
+        `${label}: string ${stringNumber(position.stringIndex)} fret ${position.fret} does not sound ${noteName(position.tone.note)}`,
+      );
+    }
+  });
+  const sounding = new Set(positions.map((position) => position.tone.pitchClass));
+  const chordTones = inverted.triad.tones.map((tone) => tone.pitchClass);
+  if (sounding.size !== chordTones.length || chordTones.some((pc) => !sounding.has(pc))) {
+    throw new Error(`${label} does not contain each chord tone exactly once`);
+  }
 }
 
 /** Root position, first and second inversion of a triad on one string set. */
@@ -100,13 +133,13 @@ export function triadVoicings(
 /**
  * Plain-language description for screen readers:
  * "A major, first inversion on strings 3, 2, 1: string 3 6th fret C♯ (3), string 2 5th fret
- * E (5), string 1 5th fret A (1)."
+ * E (5), string 1 5th fret A (R)."
  */
 export function describeTriadVoicing(voicing: TriadVoicing): string {
   const strings = voicing.stringSet.stringIndexes.map(stringNumber).join(', ');
   const parts = voicing.positions.map((position) => {
     const where = position.fret === 0 ? 'open' : `${ordinal(position.fret)} fret`;
-    return `string ${stringNumber(position.stringIndex)} ${where} ${noteName(position.tone.note)} (${intervalLabel(position.tone.interval)})`;
+    return `string ${stringNumber(position.stringIndex)} ${where} ${noteName(position.tone.note)} (${chordToneLabel(position.tone)})`;
   });
   const stretch = voicing.playable ? '' : ' This shape is a wide stretch.';
   return `${voicing.inverted.triad.name}, ${voicing.inverted.name.toLowerCase()} on strings ${strings}: ${parts.join(', ')}.${stretch}`;

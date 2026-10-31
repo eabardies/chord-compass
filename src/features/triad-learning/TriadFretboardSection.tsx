@@ -1,6 +1,6 @@
 import { NoteMarker } from '../../components/NoteMarker';
-import { TriadFretboard } from '../../components/TriadFretboard';
-import type { TriadFretboardModel } from '../../components/triadDiagramModels';
+import { TriadFretboard } from '../../components/triads/TriadFretboard';
+import type { TriadFretboardModel } from '../../components/triads/triadDiagramModels';
 
 interface TriadFretboardSectionProps {
   model: TriadFretboardModel;
@@ -29,7 +29,7 @@ export function TriadFretboardSection({
         <ul className="triad-legend" aria-label="Legend">
           <li className="triad-legend__item">
             <svg className="triad-legend__swatch" viewBox="0 0 40 32" aria-hidden="true">
-              <NoteMarker cx={20} cy={16} label="1" isRoot open={false} />
+              <NoteMarker cx={20} cy={16} label="R" isRoot open={false} />
             </svg>
             <span>Root (ringed)</span>
           </li>
@@ -47,12 +47,17 @@ export function TriadFretboardSection({
           </li>
         </ul>
       </header>
+      <p className="triad-fretboard-section__orientation">
+        <span>Tab view · high e at top</span>
+        <span aria-hidden="true">Nut ← → Bridge</span>
+      </p>
       <div className="triad-fretboard-section__scroller" tabIndex={0}>
         <TriadFretboard model={model} />
       </div>
       <p className="note-text">
-        Highest string on top, as in tablature. Each box is one inversion; the cards above stay in
-        inversion order while the boxes sit where the shapes fall on the neck.
+        String 1 (high e) is the top line and string 6 (low E) the bottom one, as in tablature. The
+        heavier strings are the set; each box is one inversion. The cards above stay in inversion
+        order while the boxes sit where the shapes fall on the neck.
       </p>
     </section>
   );

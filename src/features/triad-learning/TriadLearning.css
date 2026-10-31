@@ -26,23 +26,20 @@
   color: var(--color-text-primary);
 }
 
-.triad-summary__facts,
-.triad-card__facts {
+.triad-summary__facts {
   margin: 0;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-5);
 }
 
-.triad-summary__fact,
-.triad-card__fact {
+.triad-summary__fact {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.triad-summary__fact dt,
-.triad-card__fact dt {
+.triad-summary__fact dt {
   font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -50,8 +47,7 @@
   color: var(--color-text-muted);
 }
 
-.triad-summary__fact dd,
-.triad-card__fact dd {
+.triad-summary__fact dd {
   margin: 0;
   font-weight: 700;
   font-size: var(--font-size-lg);
@@ -61,48 +57,6 @@
 
 .triad-summary .note-text {
   flex-basis: 100%;
-}
-
-/* Inversion cards */
-.triad-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-4);
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 48rem) {
-  .triad-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.triad-grid__item {
-  min-width: 0;
-}
-
-.triad-grid__item .card {
-  height: 100%;
-}
-
-.triad-card__facts {
-  gap: var(--space-2) var(--space-4);
-}
-
-.triad-card__fact dd {
-  font-size: var(--font-size-md);
-}
-
-.triad-card__caption {
-  text-align: center;
-}
-
-.triad-card__warning {
-  color: var(--color-text);
-  border-left: 3px solid var(--color-accent);
-  padding-left: var(--space-3);
 }
 
 /* Across the fretboard */
@@ -129,6 +83,16 @@
 .triad-fretboard-section__title {
   font-size: var(--font-size-lg);
   font-weight: 700;
+}
+
+.triad-fretboard-section__orientation {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: calc(-1 * var(--space-3));
 }
 
 .triad-legend {

@@ -4,12 +4,20 @@
   font-family: var(--font-body);
 }
 
+/* The second line of a stacked marker: the note name under the degree. */
+.note-marker__sublabel {
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--font-body);
+}
+
 /* Filled: a chord tone. */
 .note-marker--fretted .note-marker__pill {
   fill: var(--color-chord-tone);
 }
 
-.note-marker--fretted .note-marker__label {
+.note-marker--fretted .note-marker__label,
+.note-marker--fretted .note-marker__sublabel {
   fill: var(--color-chord-tone-text);
 }
 
@@ -20,7 +28,8 @@
   stroke-width: 1.5;
 }
 
-.note-marker--open .note-marker__label {
+.note-marker--open .note-marker__label,
+.note-marker--open .note-marker__sublabel {
   fill: var(--color-text-primary);
 }
 
@@ -42,7 +51,8 @@
   stroke-width: 1;
 }
 
-.note-marker--quiet .note-marker__label {
+.note-marker--quiet .note-marker__label,
+.note-marker--quiet .note-marker__sublabel {
   fill: var(--color-scale-tone-text);
 }
 
@@ -54,6 +64,7 @@
   stroke-dasharray: 3 2;
 }
 
-.note-marker--altered .note-marker__label {
+.note-marker--altered .note-marker__label,
+.note-marker--altered .note-marker__sublabel {
   fill: var(--color-altered-tone-text);
 }

@@ -1,0 +1,68 @@
+/* Inversion cards: three side by side where there is room, stacked on phones. */
+.triad-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.triad-grid__item {
+  min-width: 0;
+}
+
+.triad-grid__item .card {
+  height: 100%;
+  padding: var(--space-4);
+}
+
+.triad-card__bass {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+.triad-card__bass strong {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+.triad-card__facts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.triad-card__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.triad-card__fact dt {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.triad-card__fact dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.triad-card__caption {
+  text-align: center;
+}
+
+.triad-card__warning {
+  color: var(--color-text);
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--space-3);
+}

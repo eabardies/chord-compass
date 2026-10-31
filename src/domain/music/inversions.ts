@@ -1,5 +1,5 @@
 import {
-  triadDegreeLabels,
+  chordToneLabels,
   triadNoteNames,
   triadTone,
   type Triad,
@@ -36,10 +36,12 @@ export interface InvertedTriad {
   readonly name: string;
   /** Low to high. */
   readonly tones: readonly [TriadTone, TriadTone, TriadTone];
-  /** "3–5–1" */
+  /** Low to high, with the root written "R": "3–5–R". */
   readonly degreeOrder: string;
-  /** "C♯–E–A" */
+  /** Low to high: "C♯–E–A". */
   readonly noteOrder: string;
+  /** The lowest tone, which names the inversion: first inversion has the third in the bass. */
+  readonly bass: TriadTone;
 }
 
 export function invertTriad(triad: Triad, inversion: TriadInversion): InvertedTriad {
@@ -50,8 +52,9 @@ export function invertTriad(triad: Triad, inversion: TriadInversion): InvertedTr
     inversion,
     name: INVERSION_NAMES[inversion],
     tones,
-    degreeOrder: triadDegreeLabels(tones).join('–'),
+    degreeOrder: chordToneLabels(tones).join('–'),
     noteOrder: triadNoteNames(tones).join('–'),
+    bass: low,
   };
 }
 

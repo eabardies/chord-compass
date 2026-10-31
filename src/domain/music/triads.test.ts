@@ -129,20 +129,20 @@ describe('triad inversions', () => {
       second: ['fifth', 'root', 'third'],
     });
     const major = triad('A', 'major');
-    expect(invertTriad(major, 'root').degreeOrder).toBe('1–3–5');
+    expect(invertTriad(major, 'root').degreeOrder).toBe('R–3–5');
     expect(invertTriad(major, 'root').noteOrder).toBe('A–C♯–E');
-    expect(invertTriad(major, 'first').degreeOrder).toBe('3–5–1');
+    expect(invertTriad(major, 'first').degreeOrder).toBe('3–5–R');
     expect(invertTriad(major, 'first').noteOrder).toBe('C♯–E–A');
-    expect(invertTriad(major, 'second').degreeOrder).toBe('5–1–3');
+    expect(invertTriad(major, 'second').degreeOrder).toBe('5–R–3');
     expect(invertTriad(major, 'second').noteOrder).toBe('E–A–C♯');
   });
 
   it('uses the flat third in minor inversions', () => {
     const minor = triad('A', 'minor');
     expect(triadInversions(minor).map((inversion) => inversion.degreeOrder)).toEqual([
-      '1–♭3–5',
-      '♭3–5–1',
-      '5–1–♭3',
+      'R–♭3–5',
+      '♭3–5–R',
+      '5–R–♭3',
     ]);
     expect(triadInversions(minor).map((inversion) => inversion.noteOrder)).toEqual([
       'A–C–E',

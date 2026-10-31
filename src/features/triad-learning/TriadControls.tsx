@@ -1,14 +1,10 @@
 import { LabeledSelect } from '../../components/LabeledSelect';
 import { ToggleButtons } from '../../components/ToggleButtons';
+import { StringSetSelector } from '../../components/triads/StringSetSelector';
+import { MARKER_LABEL_MODES, type MarkerLabelMode } from '../../components/triads/markerLabels';
 import { CHORD_ROOTS, LEARNABLE_TRIAD_QUALITIES, TRIAD_QUALITY_LABELS } from '../../data';
-import {
-  describeStringSet,
-  STANDARD_TUNING,
-  TRIAD_STRING_SETS,
-  type StringSetId,
-} from '../../domain/guitar';
+import { STANDARD_TUNING, type StringSetId } from '../../domain/guitar';
 import type { TriadQuality } from '../../domain/music';
-import { MARKER_LABEL_MODES, type MarkerLabelMode } from './markerLabels';
 import type { TriadLearningSelections } from './useTriadLearningState';
 
 interface TriadControlsProps {
@@ -47,29 +43,15 @@ export function TriadControls({
           onChange={onQualityChange}
         />
       </div>
+      <StringSetSelector
+        value={selections.stringSetId}
+        onChange={onStringSetChange}
+        tuning={STANDARD_TUNING}
+      />
       <div className="field">
-        <span className="field__label">
-          String set <span className="field__hint">· shown low to high</span>
-        </span>
+        <span className="field__label">Marker labels</span>
         <ToggleButtons
-          label="String set"
-          options={TRIAD_STRING_SETS.map((set) => {
-            const lowToHigh = describeStringSet(set, STANDARD_TUNING);
-            return {
-              id: set.id,
-              label: set.name,
-              hint: lowToHigh,
-              description: `low to high ${lowToHigh}`,
-            };
-          })}
-          value={selections.stringSetId}
-          onChange={onStringSetChange}
-        />
-      </div>
-      <div className="field">
-        <span className="field__label">Dot labels</span>
-        <ToggleButtons
-          label="Dot labels"
+          label="Marker labels"
           options={MARKER_LABEL_MODES}
           value={selections.labelMode}
           onChange={onLabelModeChange}

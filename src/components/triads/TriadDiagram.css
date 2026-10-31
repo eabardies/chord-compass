@@ -1,0 +1,82 @@
+.triad-diagram {
+  margin: 0;
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Orientation is spelled out in text, never left to the reader's guess. */
+.triad-diagram__orientation {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.triad-diagram__orientation-view {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.triad-diagram__orientation-ends {
+  display: flex;
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+}
+
+.triad-diagram__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-body);
+}
+
+.triad-diagram__board {
+  fill: var(--color-surface-raised);
+}
+
+.triad-diagram__active-band {
+  fill: var(--color-barre);
+}
+
+.triad-diagram__nut {
+  fill: var(--color-diagram-nut);
+}
+
+.triad-diagram__fret {
+  stroke: var(--color-diagram-line);
+  stroke-width: 1;
+}
+
+/* Strings outside the set stay visible but thin; the set is heavier and sits on the band. */
+.triad-diagram__string {
+  stroke: var(--color-diagram-line);
+  stroke-width: 1;
+}
+
+.triad-diagram__string--active {
+  stroke: var(--color-diagram-nut);
+  stroke-width: 2.25;
+}
+
+.triad-diagram__string-name,
+.triad-diagram__fret-number {
+  font-size: 12px;
+  fill: var(--color-text-muted);
+}
+
+.triad-diagram__string-name--active {
+  font-weight: 700;
+  fill: var(--color-text-primary);
+}
+
+/* Away from the nut the first visible fret is the anchor, so it is set in bold. */
+.triad-diagram__fret-number--start {
+  font-weight: 700;
+  fill: var(--color-text-primary);
+}
