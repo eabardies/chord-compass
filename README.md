@@ -262,9 +262,13 @@ Each step is shown explicitly: chord formula → chord notes → inversion order
   the bass note and writes the tones from the lowest string of the set to the highest, which
   reads bottom-up on the diagram. Voicings are validated against the chord before rendering
   (`assertVoicingMatchesTriad`): right tones, right order, no doubled tone.
-- **Chords in a key** (its own tab): a root and one of four scale types (major, natural,
+- **Chords in a key** (its own tab): any of the 17 shared roots (`CHORD_ROOTS`, the same list as
+  Explore chords and Learn triads) and one of four scale types (major, natural,
   harmonic and ascending melodic minor, `SCALE_FORMULAS` in `domain/music/keys.ts`). The
-  scale is spelled by degree, so F♯ major has an E♯ and G♯ harmonic minor an F𝄪. Its seven
+  scale is spelled by degree, so F♯ major has an E♯, G♯ harmonic minor an F𝄪 and D♭ natural
+  minor a B𝄫. The chosen spelling is never swapped for an enharmonic one: D♯ major is shown
+  as D♯ E♯ F𝄪 G♯ A♯ B♯ C𝄪, with a one-line note that E♭ major is the common spelling.
+  Accessible names say the accidentals ("C sharp", "F double sharp"). Its seven
   triads come from `harmonizeScale` (stack thirds, classify by sounding intervals; no table of
   qualities per scale). Picking a chord card highlights its tones in the scale list and on a
   fretboard of the key's own scale (the shared `FretboardSection`, dots labelled with degrees of

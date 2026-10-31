@@ -112,3 +112,19 @@ export function parseNote(text: string): NoteSpelling {
 export function isLetter(value: string): value is Letter {
   return (LETTERS as readonly string[]).includes(value);
 }
+
+const SPOKEN_ACCIDENTALS: Record<Accidental, string> = {
+  [-2]: ' double flat',
+  [-1]: ' flat',
+  [0]: '',
+  [1]: ' sharp',
+  [2]: ' double sharp',
+};
+
+/**
+ * The note as it is said: "C sharp", "F double sharp". Screen readers do not reliably read
+ * the musical glyphs, so accessible names and descriptions use this instead of `noteName`.
+ */
+export function spokenNoteName(spelling: NoteSpelling): string {
+  return `${spelling.letter}${SPOKEN_ACCIDENTALS[spelling.accidental]}`;
+}

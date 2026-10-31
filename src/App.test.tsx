@@ -796,28 +796,9 @@ describe('chords in a key', () => {
       'vii°BdimDiminished',
     ]);
     expect(fretboard()).toHaveAccessibleName(
-      'C melodic minor scale on the fretboard, E♭ augmented highlighted',
+      'C melodic minor scale on the fretboard, E flat augmented highlighted',
     );
     expect(fretboardTones('scale')).toEqual(['1', '2', '4', '6']);
-  });
-
-  it('keeps the tonic sound when the scale type changes the spelling list', async () => {
-    const user = await openKeys();
-    await user.selectOptions(panel().getByLabelText('Root note'), 'Aflat');
-    await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
-    expect(panel().getByLabelText('Root note')).toHaveValue('Gsharp');
-    expect(scaleTiles().map((tile) => tile.text)).toEqual([
-      'G♯1',
-      'A♯2',
-      'B♭3',
-      'C♯4',
-      'D♯5',
-      'E♭6',
-      'F𝄪7',
-    ]);
-    expect(cardTexts()[6]).toBe('vii°F𝄪dimDiminished');
-    await user.click(scaleTypes().getByRole('button', { name: 'Major' }));
-    expect(panel().getByLabelText('Root note')).toHaveValue('Aflat');
   });
 
   it('switches fretboard dot labels and shares the choice with Explore chords', async () => {
@@ -978,7 +959,7 @@ describe('chords in a key', () => {
       'D♯6',
       'E♯7',
     ]);
-    await user.click(chordCards().getByRole('button', { name: /vii°, E♯ diminished/ }));
+    await user.click(chordCards().getByRole('button', { name: /vii°, E sharp diminished/ }));
     expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('E♯ (R) · G♯ (♭3) · B (♭5)');
     expect(cards()[0].notes).toBe('E♯ → G♯ → B');
     await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
@@ -990,6 +971,255 @@ describe('chords in a key', () => {
       'true',
     );
     expect(screen.getByRole('heading', { name: 'F diminished' })).toBeInTheDocument();
+  });
+});
+
+describe('chords in a key: every root, spelled as chosen', () => {
+  async function openKeys() {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: 'Chords in a key' }));
+    return user;
+  }
+
+  const rootSelect = () => panel().getByLabelText('Root note') as HTMLSelectElement;
+  const rootOptions = () =>
+    Array.from(rootSelect().options).map((option) => ({
+      value: option.value,
+      text: option.textContent,
+      spoken: option.getAttribute('aria-label'),
+    }));
+  const chordCards = () => within(screen.getByRole('group', { name: 'Chords in this key' }));
+  const cardTexts = () =>
+    chordCards()
+      .getAllByRole('button')
+      .map((button) => button.textContent);
+  const scaleTiles = () =>
+    within(screen.getByRole('list', { name: /^Notes in / }))
+      .getAllByRole('listitem')
+      .map((item) => item.textContent?.replace(/,.*$/, ''));
+  const scaleTypes = () => within(screen.getByRole('group', { name: 'Scale type' }));
+  const dotLabels = () => within(screen.getByRole('group', { name: 'Fretboard dot labels' }));
+  const fretboard = () => screen.getByRole('img', { name: /scale on the fretboard/ });
+  const fretboardTones = (tone: string) =>
+    [
+      ...new Set(
+        Array.from(fretboard().querySelectorAll(`.note-marker[data-tone="${tone}"]`)).map(
+          (marker) => marker.getAttribute('data-label'),
+        ),
+      ),
+    ].sort();
+  const cardNotes = (inversion: 'root' | 'first' | 'second') =>
+    panel().getByTestId(`${inversion}-notes`).textContent;
+
+  it('offers the same seventeen roots as Explore chords, in the same order, with spoken names', async () => {
+    await openKeys();
+    const options = rootOptions();
+    expect(options.map((option) => option.text)).toEqual([
+      'C',
+      'C♯',
+      'D♭',
+      'D',
+      'D♯',
+      'E♭',
+      'E',
+      'F',
+      'F♯',
+      'G♭',
+      'G',
+      'G♯',
+      'A♭',
+      'A',
+      'A♯',
+      'B♭',
+      'B',
+    ]);
+    expect(options.find((option) => option.value === 'Csharp')?.spoken).toBe('C sharp');
+    expect(options.find((option) => option.value === 'Gflat')?.spoken).toBe('G flat');
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Explore chords' }));
+    const explorerOptions = Array.from(
+      (panel().getByLabelText('Root note') as HTMLSelectElement).options,
+    ).map((option) => option.value);
+    expect(options.map((option) => option.value)).toEqual(explorerOptions);
+  });
+
+  it('C♯ major keeps E♯ and B♯ in the scale, the chords, the fretboard and the triads', async () => {
+    const user = await openKeys();
+    await user.selectOptions(rootSelect(), 'Csharp');
+    expect(rootSelect()).toHaveValue('Csharp');
+    expect(screen.getByRole('heading', { name: 'Notes in C♯ major' })).toBeInTheDocument();
+    expect(scaleTiles()).toEqual(['C♯1', 'D♯2', 'E♯3', 'F♯4', 'G♯5', 'A♯6', 'B♯7']);
+    expect(cardTexts()).toEqual([
+      'IC♯Major',
+      'iiD♯mMinor',
+      'iiiE♯mMinor',
+      'IVF♯Major',
+      'VG♯Major',
+      'viA♯mMinor',
+      'vii°B♯dimDiminished',
+    ]);
+    expect(chordCards().getByRole('button', { name: 'C♯, I, C sharp major' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('C♯ (R) · E♯ (3) · G♯ (5)');
+    expect(panel().getByTestId('key-chord-role')).toHaveTextContent('I in C♯ major');
+    expect(screen.queryByTestId('enharmonic-note')).toBeNull();
+
+    expect(fretboard()).toHaveAccessibleName(
+      'C sharp major scale on the fretboard, C sharp major highlighted',
+    );
+    expect(fretboard()).toHaveAttribute(
+      'aria-description',
+      expect.stringContaining(
+        'Scale notes are C sharp, D sharp, E sharp, F sharp, G sharp, A sharp and B sharp.',
+      ),
+    );
+    await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
+    expect(fretboardTones('root')).toEqual(['C♯']);
+    expect(fretboardTones('chord')).toEqual(['E♯', 'G♯']);
+    expect(fretboardTones('scale')).toEqual(['A♯', 'B♯', 'D♯', 'F♯']);
+    await user.click(dotLabels().getByRole('button', { name: 'Both' }));
+    expect(fretboardTones('chord')).toEqual(['3/E♯', '5/G♯']);
+
+    expect(cardNotes('root')).toBe('C♯ → E♯ → G♯');
+    expect(cardNotes('first')).toBe('E♯ → G♯ → C♯');
+    expect(
+      screen.getByRole('img', { name: 'C♯ major, root position on strings 3, 2, 1' }),
+    ).toHaveAttribute('aria-description', expect.stringContaining('E♯ (3)'));
+    expect(
+      screen.getByRole('button', { name: 'Practise all C♯ major triads' }),
+    ).toBeInTheDocument();
+  });
+
+  it('C♯ harmonic minor spells its vii° as B♯ diminished with B♯, D♯, F♯', async () => {
+    const user = await openKeys();
+    await user.selectOptions(rootSelect(), 'Csharp');
+    await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
+    expect(rootSelect()).toHaveValue('Csharp');
+    expect(scaleTiles()).toEqual(['C♯1', 'D♯2', 'E♭3', 'F♯4', 'G♯5', 'A♭6', 'B♯7']);
+    expect(cardTexts()).toEqual([
+      'iC♯mMinor',
+      'ii°D♯dimDiminished',
+      'III+EaugAugmented',
+      'ivF♯mMinor',
+      'VG♯Major',
+      'VIAMajor',
+      'vii°B♯dimDiminished',
+    ]);
+    await user.click(chordCards().getByRole('button', { name: /^B♯dim, vii°/ }));
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('B♯ (R) · D♯ (♭3) · F♯ (♭5)');
+    expect(cardNotes('root')).toBe('B♯ → D♯ → F♯');
+    expect(cardNotes('second')).toBe('F♯ → B♯ → D♯');
+    expect(panel().getByTestId('root-frets')).toHaveTextContent('5–4–2');
+    await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
+    expect(fretboardTones('root')).toEqual(['B♯']);
+
+    await user.click(scaleTypes().getByRole('button', { name: 'Natural minor' }));
+    expect(cardTexts()).toEqual([
+      'iC♯mMinor',
+      'ii°D♯dimDiminished',
+      'IIIEMajor',
+      'ivF♯mMinor',
+      'vG♯mMinor',
+      'VIAMajor',
+      'VIIBMajor',
+    ]);
+    await user.click(scaleTypes().getByRole('button', { name: 'Melodic minor' }));
+    expect(cardTexts()).toEqual([
+      'iC♯mMinor',
+      'iiD♯mMinor',
+      'III+EaugAugmented',
+      'IVF♯Major',
+      'VG♯Major',
+      'vi°A♯dimDiminished',
+      'vii°B♯dimDiminished',
+    ]);
+  });
+
+  it('D♯ and A♯ major keep their double sharps and only mention the common spelling', async () => {
+    const user = await openKeys();
+    await user.selectOptions(rootSelect(), 'Dsharp');
+    expect(rootSelect()).toHaveValue('Dsharp');
+    expect(scaleTiles()).toEqual(['D♯1', 'E♯2', 'F𝄪3', 'G♯4', 'A♯5', 'B♯6', 'C𝄪7']);
+    expect(cardTexts()).toEqual([
+      'ID♯Major',
+      'iiE♯mMinor',
+      'iiiF𝄪mMinor',
+      'IVG♯Major',
+      'VA♯Major',
+      'viB♯mMinor',
+      'vii°C𝄪dimDiminished',
+    ]);
+    expect(panel().getByTestId('enharmonic-note')).toHaveTextContent(
+      'D♯ major uses double sharps. E♭ major is its more commonly written enharmonic equivalent.',
+    );
+    await user.click(chordCards().getByRole('button', { name: 'F𝄪m, iii, F double sharp minor' }));
+    expect(panel().getByTestId('key-chord-tones')).toHaveTextContent('F𝄪 (R) · A♯ (♭3) · C𝄪 (5)');
+    expect(cardNotes('root')).toBe('F𝄪 → A♯ → C𝄪');
+    await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
+    expect(fretboardTones('root')).toEqual(['F𝄪']);
+    expect(fretboardTones('chord')).toEqual(['A♯', 'C𝄪']);
+    expect(rootSelect()).toHaveValue('Dsharp');
+
+    await user.selectOptions(rootSelect(), 'Asharp');
+    expect(scaleTiles()).toEqual(['A♯1', 'B♯2', 'C𝄪3', 'D♯4', 'E♯5', 'F𝄪6', 'G𝄪7']);
+    expect(cardTexts()[6]).toBe('vii°G𝄪dimDiminished');
+    expect(panel().getByTestId('enharmonic-note')).toHaveTextContent('B♭ major is its more');
+
+    await user.selectOptions(rootSelect(), 'Gsharp');
+    await user.click(scaleTypes().getByRole('button', { name: 'Natural minor' }));
+    expect(scaleTiles()).toEqual(['G♯1', 'A♯2', 'B♭3', 'C♯4', 'D♯5', 'E♭6', 'F♯♭7']);
+    expect(cardTexts()).toEqual([
+      'iG♯mMinor',
+      'ii°A♯dimDiminished',
+      'IIIBMajor',
+      'ivC♯mMinor',
+      'vD♯mMinor',
+      'VIEMajor',
+      'VIIF♯Major',
+    ]);
+    expect(screen.queryByTestId('enharmonic-note')).toBeNull();
+  });
+
+  it('keeps a flat spelling when the scale type changes, using double flats where needed', async () => {
+    const user = await openKeys();
+    await user.selectOptions(rootSelect(), 'Dflat');
+    await user.click(scaleTypes().getByRole('button', { name: 'Natural minor' }));
+    expect(rootSelect()).toHaveValue('Dflat');
+    expect(screen.getByRole('heading', { name: 'Notes in D♭ natural minor' })).toBeInTheDocument();
+    expect(scaleTiles()).toEqual(['D♭1', 'E♭2', 'F♭♭3', 'G♭4', 'A♭5', 'B𝄫♭6', 'C♭♭7']);
+    expect(panel().getByTestId('enharmonic-note')).toHaveTextContent(
+      'D♭ natural minor uses double flats. C♯ natural minor is its more commonly written enharmonic equivalent.',
+    );
+    expect(cardTexts()[5]).toBe('VIB𝄫Major');
+
+    await user.selectOptions(rootSelect(), 'Gflat');
+    await user.click(scaleTypes().getByRole('button', { name: 'Harmonic minor' }));
+    expect(scaleTiles()).toEqual(['G♭1', 'A♭2', 'B𝄫♭3', 'C♭4', 'D♭5', 'E𝄫♭6', 'F7']);
+    await user.click(dotLabels().getByRole('button', { name: 'Notes' }));
+    expect(fretboardTones('scale')).toEqual(['A♭', 'C♭', 'E𝄫', 'F']);
+
+    await user.selectOptions(rootSelect(), 'Eflat');
+    await user.click(scaleTypes().getByRole('button', { name: 'Major' }));
+    expect(rootSelect()).toHaveValue('Eflat');
+    expect(scaleTiles()[0]).toBe('E♭1');
+  });
+
+  it('sends a sharp root to Learn triads with its spelling intact', async () => {
+    const user = await openKeys();
+    await user.selectOptions(rootSelect(), 'Csharp');
+    await user.click(chordCards().getByRole('button', { name: /^G♯, V/ }));
+    await user.click(screen.getByRole('button', { name: 'Practise all G♯ major triads' }));
+    expect(screen.getByRole('tab', { name: 'Learn triads' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(panel().getByLabelText('Root note')).toHaveValue('Gsharp');
+    expect(screen.getByRole('heading', { name: 'G♯ major' })).toBeInTheDocument();
+    expect(panel().getByTestId('triad-notes')).toHaveTextContent('G♯–B♯–D♯');
   });
 });
 

@@ -13,6 +13,8 @@ import {
   scaleDegreeLabels,
   scaleName,
   scaleNotesOf,
+  spokenNoteName,
+  spokenTriadName,
   type Scale,
   type Triad,
 } from '../../domain/music';
@@ -104,17 +106,18 @@ export function buildKeyFretboardModel(
     name: STRING_NAMES[stringNumber(index)] ?? noteName(open),
   }));
 
-  const name = scaleName(scale);
-  const scaleList = listNames(tones.map((tone) => tone.note));
+  // Accessible text says the accidentals ("C sharp") instead of relying on the glyphs.
+  const name = spokenScaleName(scale);
+  const scaleList = listNames(scaleNotesOf(scale).map(spokenNoteName));
   const title = preferences.highlightChord
-    ? `${name} scale on the fretboard, ${chord.name} highlighted`
+    ? `${name} scale on the fretboard, ${spokenTriadName(chord)} highlighted`
     : `${name} scale on the fretboard`;
   const chordSentence = preferences.highlightChord
-    ? ` ${chord.name} is highlighted: ${listNames(chord.tones.map((t) => noteName(t.note)))}.`
+    ? ` ${spokenTriadName(chord)} is highlighted: ${listNames(chord.tones.map((t) => spokenNoteName(t.note)))}.`
     : '';
   return {
     title,
-    description: `${name} scale on the fretboard, frets 0 to ${maxFret}, high e on top, low E at the bottom. Key root ${noteName(scale.tonic)}. Scale notes are ${scaleList}.${chordSentence}`,
+    description: `${name} scale on the fretboard, frets 0 to ${maxFret}, high e on top, low E at the bottom. Key root ${spokenNoteName(scale.tonic)}. Scale notes are ${scaleList}.${chordSentence}`,
     maxFret,
     strings,
     markers,
@@ -125,4 +128,8 @@ export function buildKeyFretboardModel(
 function listNames(names: readonly string[]): string {
   if (names.length <= 1) return names.join('');
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
+function spokenScaleName(scale: Scale): string {
+  return scaleName(scale).replace(noteName(scale.tonic), spokenNoteName(scale.tonic));
 }

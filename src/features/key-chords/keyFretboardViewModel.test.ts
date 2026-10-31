@@ -98,7 +98,9 @@ describe('key fretboard model', () => {
 
   it('C melodic minor with E♭aug selected highlights E♭, G, B', () => {
     const built = model('C', 'melodic-minor', 3, { labelMode: 'notes' });
-    expect(built.title).toBe('C melodic minor scale on the fretboard, E♭ augmented highlighted');
+    expect(built.title).toBe(
+      'C melodic minor scale on the fretboard, E flat augmented highlighted',
+    );
     expect(labels(built, 'root')).toEqual(['E♭']);
     expect(labels(built, 'chord')).toEqual(['B', 'G']);
     expect(labels(built, 'scale')).toEqual(['A', 'C', 'D', 'F']);

@@ -1,5 +1,5 @@
 import { TRIAD_QUALITY_LABELS } from '../../data';
-import type { DiatonicTriad, Triad } from '../../domain/music';
+import { spokenTriadName, type DiatonicTriad, type Triad } from '../../domain/music';
 
 export interface DiatonicChordCardModel {
   readonly diatonic: DiatonicTriad;
@@ -27,7 +27,7 @@ export function DiatonicChordCards({ chords, selectedDegree, onSelect }: Diatoni
             type="button"
             className="chord-card"
             aria-pressed={pressed}
-            aria-label={`${triad.symbol}, ${diatonic.numeral}, ${triad.name}`}
+            aria-label={`${triad.symbol}, ${diatonic.numeral}, ${spokenTriadName(triad)}`}
             data-degree={diatonic.degree}
             onClick={() => onSelect(diatonic.degree)}
           >

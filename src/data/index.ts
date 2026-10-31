@@ -5,8 +5,8 @@ import { SHAPE_LIBRARY } from './shapes';
 
 export { CHORD_TYPES, CHORD_TYPE_IDS, chordTypeById, chordTypeForTriad } from './chordTypes';
 export type { ChordTypeId } from './chordTypes';
-export { CHORD_ROOTS, KEY_TONICS, closestRootOption, rootOptionById } from './roots';
-export type { RootOption } from './roots';
+export { CHORD_ROOTS, KEY_TONICS, ROOT_NOTE_IDS, closestRootOption, rootOptionById } from './roots';
+export type { RootNoteId, RootOption } from './roots';
 export { PROGRESSION_TEMPLATES, TWELVE_BAR_BLUES, progressionsForMode } from './progressions';
 export { SHAPE_LIBRARY } from './shapes';
 export { LEARNABLE_TRIAD_QUALITIES, TRIAD_QUALITY_LABELS } from './triads';

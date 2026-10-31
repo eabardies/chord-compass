@@ -1,6 +1,8 @@
 interface SelectOption {
   id: string;
   label: string;
+  /** Read instead of the label by assistive technology, e.g. "C sharp" for "C♯". */
+  spokenName?: string;
 }
 
 interface LabeledSelectProps {
@@ -24,7 +26,7 @@ export function LabeledSelect({ id, label, value, options, onChange }: LabeledSe
         onChange={(event) => onChange(event.target.value)}
       >
         {options.map((option) => (
-          <option key={option.id} value={option.id}>
+          <option key={option.id} value={option.id} aria-label={option.spokenName}>
             {option.label}
           </option>
         ))}

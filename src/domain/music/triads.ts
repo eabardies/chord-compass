@@ -1,7 +1,7 @@
 import { buildChord, type Chord, type ChordTone, type ChordTypeDefinition } from './chords';
 import { intervalLabel } from './intervals';
 import { classifyTriad, type TriadQuality } from './keys';
-import { noteName, type NoteSpelling } from './notes';
+import { noteName, spokenNoteName, type NoteSpelling } from './notes';
 
 /**
  * A triad is a three-note chord built from a root, a third and a fifth. The quality (major,
@@ -93,4 +93,9 @@ export function chordToneLabel(tone: TriadTone): string {
 /** ["R", "♭3", "5"] for the given tones, in the order given. */
 export function chordToneLabels(tones: readonly TriadTone[]): string[] {
   return tones.map(chordToneLabel);
+}
+
+/** "C sharp major": the triad name with its accidental said rather than drawn. */
+export function spokenTriadName(triad: Triad): string {
+  return triad.name.replace(noteName(triad.root), spokenNoteName(triad.root));
 }

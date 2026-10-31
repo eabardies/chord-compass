@@ -10,13 +10,7 @@ import type {
 import { ToggleButtons } from '../../components/ToggleButtons';
 import { StringSetSelector } from '../../components/triads/StringSetSelector';
 import { TriadInversionGrid } from '../../components/triads/TriadInversionGrid';
-import {
-  CHORD_ROOTS,
-  chordTypeForTriad,
-  closestRootOption,
-  KEY_TONICS,
-  rootOptionById,
-} from '../../data';
+import { CHORD_ROOTS, chordTypeForTriad, closestRootOption, rootOptionById } from '../../data';
 import {
   FRETBOARD_MAX_FRET,
   STANDARD_TUNING,
@@ -29,14 +23,16 @@ import {
   buildTriad,
   chordToneLabel,
   harmonizeScale,
-  isMinorScale,
   noteName,
   scaleDegreeLabels,
+  scaleHasDoubleAccidentals,
   scaleName,
   scaleNotesOf,
   SCALE_TYPE_LABELS,
   SCALE_TYPES,
-  triadNoteNames,
+  simplerEnharmonicTonic,
+  spokenNoteName,
+  spokenTriadName,
   type ScaleType,
   type TriadQuality,
 } from '../../domain/music';
@@ -64,7 +60,8 @@ const DEFAULT_TONIC_ID = 'C';
  * "Chords in a key" tab. State is four selections: tonic, scale type, chord degree and string
  * set. The scale, its seven triads, the highlighted notes and every triad voicing are derived
  * during render. The degree is kept across scale changes (ii stays ii), so the user can
- * compare the same degree in different scales.
+ * compare the same degree in different scales. The tonic is whichever of the shared roots the
+ * user picked, spelled exactly so: C♯ major is C♯ major, D♯ major keeps its double sharps.
  */
 export function KeyChords({
   onPractiseTriads,
@@ -77,10 +74,10 @@ export function KeyChords({
   const [stringSetId, setStringSetId] = useState<StringSetId>(TRIAD_STRING_SETS[0].id);
   const tuning = STANDARD_TUNING;
 
-  const tonics = KEY_TONICS[isMinorScale(scaleType) ? 'minor' : 'major'];
-  const tonic = rootOptionById(tonics, tonicId) ?? tonics[0];
+  const tonic = rootOptionById(CHORD_ROOTS, tonicId) ?? CHORD_ROOTS[0];
   const scale = { tonic: tonic.note, type: scaleType };
   const name = scaleName(scale);
+  const spokenScale = `${spokenNoteName(tonic.note)} ${SCALE_TYPE_LABELS[scaleType].toLowerCase()}`;
   const notes = scaleNotesOf(scale);
   const degreeLabels = scaleDegreeLabels(scaleType);
   const chords = harmonizeScale(scale).map((diatonic) => ({
@@ -92,15 +89,16 @@ export function KeyChords({
   const chordToneByName = new Map(triad.tones.map((tone) => [noteName(tone.note), tone]));
   const stringSet = stringSetById(stringSetId) ?? TRIAD_STRING_SETS[0];
   const voicings = triadVoicings(triad, stringSet, tuning);
-  const toneSummary = triadNoteNames(triad.tones).join(' · ');
-  const announcement = `${triad.name}, ${selected.diatonic.numeral} in ${name}: ${toneSummary}. Triad shapes on strings ${stringSet.numbers}.`;
-
-  const changeScaleType = (next: ScaleType) => {
-    setScaleType(next);
-    // Keep the same tonic sound when the spelling list differs (A♭ major → G♯ minor).
-    const nextTonics = KEY_TONICS[isMinorScale(next) ? 'minor' : 'major'];
-    setTonicId(closestRootOption(nextTonics, tonic.note).id);
-  };
+  const toneSummary = triad.tones.map((tone) => noteName(tone.note)).join(' · ');
+  const spokenTones = triad.tones.map((tone) => spokenNoteName(tone.note)).join(', ');
+  const announcement = `${spokenTriadName(triad)}, ${selected.diatonic.numeral} in ${spokenScale}: ${spokenTones}. Triad shapes on strings ${stringSet.numbers}.`;
+  // Uncommon spellings (D♯ major) are kept as chosen; the common alternative is only mentioned.
+  const commonAlternative = scaleHasDoubleAccidentals(scale)
+    ? simplerEnharmonicTonic(
+        scale,
+        CHORD_ROOTS.map((root) => root.note),
+      )
+    : null;
 
   const buildFretboard = (preferences: ScaleFretboardPreferences) =>
     buildKeyFretboardModel(scale, triad, preferences, tuning, FRETBOARD_MAX_FRET);
@@ -148,7 +146,7 @@ export function KeyChords({
           id="key-chords-root"
           label="Root note"
           value={tonic.id}
-          options={tonics}
+          options={CHORD_ROOTS}
           onChange={setTonicId}
         />
         <div className="field">
@@ -157,7 +155,7 @@ export function KeyChords({
             label="Scale type"
             options={SCALE_TYPES.map((type) => ({ id: type, label: SCALE_TYPE_LABELS[type] }))}
             value={scaleType}
-            onChange={changeScaleType}
+            onChange={setScaleType}
           />
         </div>
       </div>
@@ -180,13 +178,22 @@ export function KeyChords({
                 label: noteName(note),
                 sublabel: degreeLabels[index],
                 highlighted: tone !== undefined,
-                highlightDescription: tone ? `${chordToneLabel(tone)} of ${triad.name}` : undefined,
+                highlightDescription: tone
+                  ? `${chordToneLabel(tone)} of ${spokenTriadName(triad)}`
+                  : undefined,
               };
             })}
           />
           <p className="note-text">
             Highlighted notes are the tones of {triad.name}: {toneSummary}.
           </p>
+          {commonAlternative && (
+            <p className="note-text" data-testid="enharmonic-note">
+              {name} uses double {tonic.note.accidental > 0 ? 'sharps' : 'flats'}.{' '}
+              {scaleName({ tonic: commonAlternative, type: scaleType })} is its more commonly
+              written enharmonic equivalent.
+            </p>
+          )}
         </section>
 
         <section className="key-chords__panel" aria-labelledby="key-chords-heading">

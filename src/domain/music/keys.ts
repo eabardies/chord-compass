@@ -1,5 +1,11 @@
 import { interval, intervalLabel, transposeNote, type Interval } from './intervals';
-import { noteName, normalizePitchClass, pitchClassOf, type NoteSpelling } from './notes';
+import {
+  noteName,
+  normalizePitchClass,
+  notesEqual,
+  pitchClassOf,
+  type NoteSpelling,
+} from './notes';
 
 /**
  * Scales are written as formulas relative to the major scale of the tonic, so every scale
@@ -161,4 +167,34 @@ export function romanNumeral(degree: number, quality: TriadQuality): string {
     case 'diminished':
       return `${base.toLowerCase()}°`;
   }
+}
+
+/** Total sharps and flats in the scale, double accidentals counting twice. */
+export function scaleAccidentalCount(scale: Scale): number {
+  return scaleNotesOf(scale).reduce((sum, note) => sum + Math.abs(note.accidental), 0);
+}
+
+export function scaleHasDoubleAccidentals(scale: Scale): boolean {
+  return scaleNotesOf(scale).some((note) => Math.abs(note.accidental) === 2);
+}
+
+/**
+ * Among `candidates`, the tonic that sounds the same as the scale's tonic but spells the
+ * scale with fewer accidentals, or null when the chosen spelling is already the simplest.
+ * Used only to mention the common alternative (D♯ major → E♭ major); the user's choice is
+ * never changed.
+ */
+export function simplerEnharmonicTonic(
+  scale: Scale,
+  candidates: readonly NoteSpelling[],
+): NoteSpelling | null {
+  const own = scaleAccidentalCount(scale);
+  const alternatives = candidates
+    .filter(
+      (note) => pitchClassOf(note) === pitchClassOf(scale.tonic) && !notesEqual(note, scale.tonic),
+    )
+    .map((tonic) => ({ tonic, count: scaleAccidentalCount({ tonic, type: scale.type }) }))
+    .filter((candidate) => candidate.count < own)
+    .sort((a, b) => a.count - b.count);
+  return alternatives[0]?.tonic ?? null;
 }

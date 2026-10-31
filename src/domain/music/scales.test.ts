@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { chordTypeForTriad } from '../../data';
+import { chordTypeForTriad, ROOT_NOTE_IDS } from '../../data';
 import {
   harmonizeKey,
   harmonizeScale,
   scaleDegreeLabels,
+  scaleHasDoubleAccidentals,
   scaleName,
   scaleNotes,
   scaleNotesOf,
   SCALE_TYPES,
+  simplerEnharmonicTonic,
   type ScaleType,
 } from './keys';
-import { noteName, parseNote } from './notes';
+import { noteName, parseNote, spokenNoteName } from './notes';
 import { buildTriad } from './triads';
 
 const notes = (tonic: string, type: ScaleType) =>
@@ -149,5 +151,138 @@ describe('diatonic chords', () => {
     }
     expect(chords('F#', 'major')[6]).toMatchObject({ symbol: 'E♯dim', notes: 'E♯ G♯ B' });
     expect(chords('Gb', 'major')[3]).toMatchObject({ symbol: 'C♭', notes: 'C♭ E♭ G♭' });
+  });
+});
+
+describe('sharp and flat keys keep their theoretical spelling', () => {
+  const eachLetterOnce = (names: string[]) => new Set(names.map((n) => n[0])).size === 7;
+
+  it('spells the C♯ scales with E♯ and B♯, never F and C', () => {
+    expect(notes('C#', 'major')).toEqual(['C♯', 'D♯', 'E♯', 'F♯', 'G♯', 'A♯', 'B♯']);
+    expect(notes('C#', 'natural-minor')).toEqual(['C♯', 'D♯', 'E', 'F♯', 'G♯', 'A', 'B']);
+    expect(notes('C#', 'harmonic-minor')).toEqual(['C♯', 'D♯', 'E', 'F♯', 'G♯', 'A', 'B♯']);
+    expect(notes('C#', 'melodic-minor')).toEqual(['C♯', 'D♯', 'E', 'F♯', 'G♯', 'A♯', 'B♯']);
+    expect(notes('G#', 'natural-minor')).toEqual(['G♯', 'A♯', 'B', 'C♯', 'D♯', 'E', 'F♯']);
+  });
+
+  it('uses double sharps for D♯ major and A♯ major instead of respelling', () => {
+    expect(notes('D#', 'major')).toEqual(['D♯', 'E♯', 'F𝄪', 'G♯', 'A♯', 'B♯', 'C𝄪']);
+    expect(notes('A#', 'major')).toEqual(['A♯', 'B♯', 'C𝄪', 'D♯', 'E♯', 'F𝄪', 'G𝄪']);
+    expect(scaleNotesOf({ tonic: parseNote('D#'), type: 'major' })[2]).toEqual({
+      letter: 'F',
+      accidental: 2,
+    });
+  });
+
+  it('uses double flats where a flat key demands them', () => {
+    expect(notes('Gb', 'harmonic-minor')).toEqual(['G♭', 'A♭', 'B𝄫', 'C♭', 'D♭', 'E𝄫', 'F']);
+    expect(notes('Db', 'natural-minor')).toEqual(['D♭', 'E♭', 'F♭', 'G♭', 'A♭', 'B𝄫', 'C♭']);
+  });
+
+  it('gives every offered root, in every scale type, seven notes with each letter once', () => {
+    for (const tonic of ROOT_NOTE_IDS) {
+      for (const type of SCALE_TYPES) {
+        const names = notes(tonic, type);
+        expect(names, `${tonic} ${type}`).toHaveLength(7);
+        expect(eachLetterOnce(names), `${tonic} ${type}: ${names.join(' ')}`).toBe(true);
+        expect(() => chords(tonic, type), `${tonic} ${type}`).not.toThrow();
+      }
+    }
+  });
+
+  it('harmonizes the sharp keys with correctly spelled roots and tones', () => {
+    expect(chords('C#', 'major').map((c) => `${c.numeral} ${c.symbol} [${c.notes}]`)).toEqual([
+      'I C♯ [C♯ E♯ G♯]',
+      'ii D♯m [D♯ F♯ A♯]',
+      'iii E♯m [E♯ G♯ B♯]',
+      'IV F♯ [F♯ A♯ C♯]',
+      'V G♯ [G♯ B♯ D♯]',
+      'vi A♯m [A♯ C♯ E♯]',
+      'vii° B♯dim [B♯ D♯ F♯]',
+    ]);
+    expect(chords('C#', 'natural-minor').map((c) => c.symbol)).toEqual([
+      'C♯m',
+      'D♯dim',
+      'E',
+      'F♯m',
+      'G♯m',
+      'A',
+      'B',
+    ]);
+    expect(chords('C#', 'natural-minor').map((c) => c.numeral)).toEqual([
+      'i',
+      'ii°',
+      'III',
+      'iv',
+      'v',
+      'VI',
+      'VII',
+    ]);
+    const harmonic = chords('C#', 'harmonic-minor');
+    expect(harmonic.map((c) => c.symbol)).toEqual([
+      'C♯m',
+      'D♯dim',
+      'Eaug',
+      'F♯m',
+      'G♯',
+      'A',
+      'B♯dim',
+    ]);
+    expect(harmonic.map((c) => c.numeral)).toEqual(['i', 'ii°', 'III+', 'iv', 'V', 'VI', 'vii°']);
+    expect(harmonic[6].notes).toBe('B♯ D♯ F♯');
+    expect(chords('C#', 'melodic-minor').map((c) => c.symbol)).toEqual([
+      'C♯m',
+      'D♯m',
+      'Eaug',
+      'F♯',
+      'G♯',
+      'A♯dim',
+      'B♯dim',
+    ]);
+    expect(chords('G#', 'natural-minor').map((c) => c.symbol)).toEqual([
+      'G♯m',
+      'A♯dim',
+      'B',
+      'C♯m',
+      'D♯m',
+      'E',
+      'F♯',
+    ]);
+    const dSharp = chords('D#', 'major');
+    expect(dSharp.map((c) => c.symbol)).toEqual(['D♯', 'E♯m', 'F𝄪m', 'G♯', 'A♯', 'B♯m', 'C𝄪dim']);
+    expect(dSharp.map((c) => c.quality)).toEqual([
+      'major',
+      'minor',
+      'minor',
+      'major',
+      'major',
+      'minor',
+      'diminished',
+    ]);
+    expect(dSharp[2].notes).toBe('F𝄪 A♯ C𝄪');
+    expect(dSharp[6].notes).toBe('C𝄪 E♯ G♯');
+    expect(chords('A#', 'major')[6]).toMatchObject({ symbol: 'G𝄪dim', notes: 'G𝄪 B♯ D♯' });
+  });
+
+  it('says accidentals out loud for assistive technology', () => {
+    expect(spokenNoteName(parseNote('C#'))).toBe('C sharp');
+    expect(spokenNoteName(parseNote('Bb'))).toBe('B flat');
+    expect(spokenNoteName({ letter: 'F', accidental: 2 })).toBe('F double sharp');
+    expect(spokenNoteName({ letter: 'B', accidental: -2 })).toBe('B double flat');
+    expect(spokenNoteName(parseNote('A'))).toBe('A');
+  });
+
+  it('points uncommon spellings at their common enharmonic key without changing them', () => {
+    const roots = ROOT_NOTE_IDS.map((id) => parseNote(id));
+    const dSharpMajor = { tonic: parseNote('D#'), type: 'major' as const };
+    expect(scaleHasDoubleAccidentals(dSharpMajor)).toBe(true);
+    expect(noteName(simplerEnharmonicTonic(dSharpMajor, roots)!)).toBe('E♭');
+    const dFlatMinor = { tonic: parseNote('Db'), type: 'natural-minor' as const };
+    expect(noteName(simplerEnharmonicTonic(dFlatMinor, roots)!)).toBe('C♯');
+    const cMajor = { tonic: parseNote('C'), type: 'major' as const };
+    expect(scaleHasDoubleAccidentals(cMajor)).toBe(false);
+    expect(simplerEnharmonicTonic(cMajor, roots)).toBeNull();
+    // F♯ and G♭ major are equally simple, so neither is "more common" than the other.
+    expect(simplerEnharmonicTonic({ tonic: parseNote('F#'), type: 'major' }, roots)).toBeNull();
   });
 });
